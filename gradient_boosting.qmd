@@ -71,3 +71,13 @@ f_1(x)=f_0(x)+h_1(x)=
 \end{cases}
 $$
 :::
+
+:::{.callout-note}
+## Beyond squared error: cross-entropy loss for classification boosting
+
+The exercise above uses squared error loss, where the negative gradient is simply the residual. For **classification** problems, gradient boosting typically uses the **cross-entropy (log-likelihood) loss**:
+$$
+\mathcal{L} = -\sum_{i=1}^n \left[y_i \log(\hat{p}_i) + (1-y_i)\log(1-\hat{p}_i)\right]
+$$
+where $\hat{p}_i = \sigma(f(x_i))$ is the predicted probability via the sigmoid function. The negative gradient with respect to $f(x_i)$ is $y_i - \hat{p}_i$ — similar in form to the residual but now operating on the probability scale. This connects directly to the [Information Theory chapter](information_theory.qmd#sec-mle-kl-divergence): minimizing cross-entropy loss is equivalent to minimizing KL divergence between the data distribution and the model's predicted distribution. Popular implementations such as XGBoost and LightGBM use this as their default classification objective.
+:::

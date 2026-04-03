@@ -284,6 +284,12 @@ Suppose we are classifying economic regimes into three categories: "Recession", 
 This representation is useful because it allows machine learning models, which operate on numerical inputs, to handle categorical data without implying an ordinal relationship between the categories (e.g., that "Boom" is 'greater' than "Recession").
 :::
 
+:::{.callout-important}
+## Connection to information theory
+
+The cross-entropy loss is not just a convenient formula — it has a direct information-theoretic foundation. Recall from the [Information Theory chapter](information_theory.qmd#sec-mle-kl-divergence) that minimizing cross-entropy between the empirical data distribution and the model is equivalent to maximum likelihood estimation, which in turn minimizes the KL divergence between the two distributions. When we train a neural network with cross-entropy loss, we are implicitly finding the parameters $\boldsymbol{\theta}$ whose predicted class probabilities are closest (in KL divergence) to the true conditional class distribution.
+:::
+
 :::{.callout-note}
 ## Point to think about
 Why is the cross-entropy loss for a binary classification a special case of the categorical cross-entropy loss with $K = 2$?

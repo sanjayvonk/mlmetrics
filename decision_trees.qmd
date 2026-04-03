@@ -153,3 +153,84 @@ $$\hat{y} = \begin{cases}
 \end{cases}$$
 
 :::
+
+::: {.callout-note}
+## Exercise 10.2: Classification Tree with Entropy Splitting
+
+Consider the following dataset of 6 firms classified as "default" ($y=1$) or "no default" ($y=0$) based on a single predictor, the debt-to-equity ratio $x$:
+
+| Firm | $x$ (debt-to-equity) | $y$ (default) |
+|------|----------------------|---------------|
+| 1    | 0.5                  | 0             |
+| 2    | 1.2                  | 0             |
+| 3    | 1.8                  | 1             |
+| 4    | 2.5                  | 0             |
+| 5    | 3.0                  | 1             |
+| 6    | 3.5                  | 1             |
+
+1. Compute the entropy of the root node (the full dataset) using $\mathbb{H}(\hat{\pi}) = -\hat{\pi}\log(\hat{\pi}) - (1-\hat{\pi})\log(1-\hat{\pi})$.
+
+2. For the candidate split at $x = 2.15$ (midpoint between firms 3 and 4), compute the entropy of the left and right child nodes and the resulting **information gain**.
+
+3. Repeat Part 2 for the candidate split at $x = 1.5$.
+
+4. Which of the two splits is preferred? Briefly explain why in terms of node purity.
+
+*Exam level: suitable as-is, possibly with $\log$ values provided.*
+:::
+
+::: {.callout-warning collapse="true"}
+## Hint for Part 1
+Count the number of defaults in the full sample. The empirical frequency is $\hat{\pi} = 3/6 = 1/2$. What is the entropy of a fair coin?
+:::
+
+::: {.callout-warning collapse="true"}
+## Hint for Part 2
+The split $x = 2.15$ puts firms 1, 2, 3 on the left and firms 4, 5, 6 on the right. Compute $\hat{\pi}$ in each child, then the weighted average entropy: $\frac{n_\ell}{n}\mathbb{H}(\hat{\pi}_\ell) + \frac{n_r}{n}\mathbb{H}(\hat{\pi}_r)$.
+:::
+
+::: {.callout-tip collapse="true"}
+## Solution
+
+**Part 1: Root entropy**
+
+The full sample has 3 defaults out of 6 firms, so $\hat{\pi} = 1/2$.
+
+$$\mathbb{H}(1/2) = -\tfrac{1}{2}\log(1/2) - \tfrac{1}{2}\log(1/2) = \log 2 \approx 0.693$$
+
+**Part 2: Split at $x = 2.15$**
+
+Left child ($x \leq 2.15$): firms 1, 2, 3 with labels $(0, 0, 1)$ → $\hat{\pi}_\ell = 1/3$, $n_\ell = 3$
+
+$$\mathbb{H}(1/3) = -\tfrac{1}{3}\log(1/3) - \tfrac{2}{3}\log(2/3) = \tfrac{1}{3}\log 3 + \tfrac{2}{3}\log(3/2) \approx 0.637$$
+
+Right child ($x > 2.15$): firms 4, 5, 6 with labels $(0, 1, 1)$ → $\hat{\pi}_r = 2/3$, $n_r = 3$
+
+$$\mathbb{H}(2/3) = -\tfrac{2}{3}\log(2/3) - \tfrac{1}{3}\log(1/3) = \mathbb{H}(1/3) \approx 0.637$$
+
+Weighted child entropy:
+$$\frac{3}{6}(0.637) + \frac{3}{6}(0.637) = 0.637$$
+
+Information gain:
+$$\text{IG} = 0.693 - 0.637 = 0.056$$
+
+**Part 3: Split at $x = 1.5$**
+
+Left child ($x \leq 1.5$): firms 1, 2 with labels $(0, 0)$ → $\hat{\pi}_\ell = 0$, $n_\ell = 2$
+
+$$\mathbb{H}(0) = 0$$
+
+Right child ($x > 1.5$): firms 3, 4, 5, 6 with labels $(1, 0, 1, 1)$ → $\hat{\pi}_r = 3/4$, $n_r = 4$
+
+$$\mathbb{H}(3/4) = -\tfrac{3}{4}\log(3/4) - \tfrac{1}{4}\log(1/4) = \tfrac{3}{4}\log(4/3) + \tfrac{1}{4}\log 4 \approx 0.562$$
+
+Weighted child entropy:
+$$\frac{2}{6}(0) + \frac{4}{6}(0.562) = 0.375$$
+
+Information gain:
+$$\text{IG} = 0.693 - 0.375 = 0.318$$
+
+**Part 4: Comparison**
+
+The split at $x = 1.5$ is preferred because it achieves a much higher information gain (0.318 vs 0.056). It creates one perfectly pure child node (the left child has zero entropy), which substantially reduces the overall uncertainty. The split at $x = 2.15$ barely improves on the root because both children remain nearly as impure as the parent.
+:::

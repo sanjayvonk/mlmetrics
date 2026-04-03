@@ -17,6 +17,12 @@ $$
 \mathcal{L}(\phi) = -\sum_{i=1}^n \log p(y_i|\mathbf{x}_i; \boldsymbol{\theta}(\mathbf{x}_i))
 $$
 
+:::{.callout-important}
+## Information-theoretic interpretation
+
+This NLL objective is the same cross-entropy loss we encountered in the [Information Theory chapter](information_theory.qmd#sec-mle-kl-divergence): minimizing it is equivalent to minimizing the KL divergence between the empirical data distribution and the network's predicted distribution. Unlike a standard neural network trained with MSE (which only targets the conditional mean), a distributional network trained with NLL targets the full conditional density — and KL divergence penalizes every aspect of distributional misspecification, including the tails.
+:::
+
 Of course, the optimization could also be done by another proper scoring rule like the continuous-ranked probability score.
 
 ## A Case Study: Hemisphere Neural Networks (HNN)

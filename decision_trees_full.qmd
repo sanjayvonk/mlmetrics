@@ -246,15 +246,43 @@ In each decision node, we:
 $$\sum_{j=1}^J \sum_{i: x_i \in R_j} (y_i - \hat{y}_{R_j})^2$$
 where $\hat{y}_{R_j} = \frac{1}{|R_j|} \sum_{x_i \in R_j} y_i$
 
-**Classification trees**: Need a different "cost measure" for class assignment
+**Classification trees**: Need a different "cost measure" for class assignment. Since the response is categorical, MSE is no longer appropriate — we need a measure of **node impurity** that captures how "mixed" the class labels are within a region.
+
+### Node Impurity and Entropy
+
+Recall from our [Information Theory chapter](information_theory.qmd) that **entropy** quantifies the uncertainty in a distribution. For a node with empirical class frequency $\hat{\pi}$ (the proportion of class "1" observations), the entropy is exactly the Bernoulli entropy we studied earlier:
+
+$$\mathbb{H}(\hat{\pi}) = -\hat{\pi} \log(\hat{\pi}) - (1 - \hat{\pi}) \log(1 - \hat{\pi})$$
+
+This is maximized at $\hat{\pi} = 0.5$ (maximum uncertainty, the node is an even mix of classes) and zero at $\hat{\pi} \in \{0, 1\}$ (the node is pure). A good split should produce child nodes with **lower entropy** than the parent — i.e., the split should reduce uncertainty about the class label.
+
+### Information Gain
+
+The criterion for choosing a split is **information gain**, defined as the reduction in entropy from the parent node to the weighted average entropy of the child nodes:
+
+$$\text{IG}(j, s) = \mathbb{H}(\hat{\pi}_{\text{parent}}) - \left[\frac{n_\ell}{n} \mathbb{H}(\hat{\pi}_\ell) + \frac{n_r}{n} \mathbb{H}(\hat{\pi}_r)\right]$$
+
+where $n_\ell, n_r$ are the sample sizes in the left and right child nodes after splitting feature $x_j$ at threshold $s$. The greedy algorithm selects the $(j, s)$ pair that **maximizes information gain**.
+
+:::{.callout-important}
+## Connection to KL divergence
+
+Information gain can be interpreted as a weighted sum of KL divergences between each child's class distribution and the parent's class distribution. Maximizing information gain is therefore equivalent to finding the split that makes the children's distributions most different from the parent — exactly the idea of "learning something new" from the split.
+:::
 
 ### Binary Classification Trees
 
-**Goal**: Find boxes $R_1, \dots, R_J$ that **minimize the entropy** across all $J$ nodes:
+Putting this together, the objective for growing a classification tree is to find boxes $R_1, \dots, R_J$ that **minimize the total entropy** across all $J$ terminal nodes:
 
-$$-\sum_{j=1}^J \hat{\pi}_{R_j} \log(\hat{\pi}_{R_j}) + (1 - \hat{\pi}_{R_j}) \log(1 - \hat{\pi}_{R_j})$$
+$$-\sum_{j=1}^J \frac{|R_j|}{N} \left[\hat{\pi}_{R_j} \log(\hat{\pi}_{R_j}) + (1 - \hat{\pi}_{R_j}) \log(1 - \hat{\pi}_{R_j})\right]$$
 
 where $\hat{\pi}_{R_j} = \frac{1}{|R_j|} \sum_{x_i \in R_j} y_i$ is the empirical frequency of class "1" in region $R_j$.
+
+:::{.callout-note}
+## Other impurity measures
+
+In practice, the **Gini impurity** $G(\hat{\pi}) = 2\hat{\pi}(1-\hat{\pi})$ is often used as an alternative to entropy. Both are concave functions of $\hat{\pi}$ that are maximized at 0.5 and zero at 0 and 1. In most applications the choice between Gini and entropy makes little practical difference, but entropy has the advantage of a direct information-theoretic interpretation.
+:::
 
 # When to Stop Growing the Tree?
 
