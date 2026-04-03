@@ -13,7 +13,9 @@ When we build a machine learning model, we face several critical decisions that 
 2. **Hyperparameter Tuning**: What values should we choose for hyperparameters? (e.g., learning rate, regularization strength)
 3. **Architecture Design**: For neural networks, how many layers and neurons should we use?
 
-Our primary goal is to create a model that performs well on **new, unseen data**. A model that only performs well on the data it was trained on is not useful in practice. This phenomenon, where a model learns the training data too well—including its noise and idiosyncrasies—is called **overfitting**.
+Our primary goal is to create a model that performs well on **new, unseen data**. A model that only performs well on the data it was trained on is not useful in practice. This phenomenon, where a model learns the training data too well, including its noise and idiosyncrasies, is called **overfitting**.
+
+For econometricians, this is not just a machine-learning issue. It arises whenever we choose among many specifications, tune regularization parameters, or compare forecasting models using the same dataset repeatedly.
 
 ## A Simple Illustration of Overfitting
 
@@ -110,13 +112,27 @@ A simple approach is to split our data into a **training set** and a **testing s
 - Evaluate their performance on the testing set
 - Choose the best-performing option
 
-However, this approach has major drawbacks:
+If this test set is used exactly once at the very end, it is a legitimate final evaluation device. The problem starts when we also use it to choose the model.
+
+However, this simple approach has major drawbacks:
 
 1. **High variance**: Model performance can be highly dependent on which specific data points ended up in each set
 2. **Test set contamination**: If we use the test set to make multiple decisions (choose hyperparameters, select architecture), we're effectively "training" on the test set, leading to overly optimistic performance estimates
 3. **Limited data usage**: We're not using all available data for training
 
 **Cross-validation** provides a more robust and reliable method for both performance estimation and model selection by systematically using different subsets of the data for training and validation.
+
+:::{.callout-important}
+## Honest Workflow: Validation vs Test Set
+
+The clean workflow is:
+
+1. Use the **training data** to fit candidate models.
+2. Use a **validation strategy** to compare models and tune hyperparameters.
+3. Keep the **test set** untouched until the very end for one final evaluation.
+
+Cross-validation is primarily a replacement for a single validation split, not for the final test set.
+:::
 
 ## Cross-Validation for Model Selection
 
@@ -136,6 +152,21 @@ For neural networks specifically, cross-validation helps us choose:
 - **Learning rate** and **batch size**
 - **Regularization parameters** (dropout rate, weight decay)
 - **Activation functions** and **optimization algorithms**
+
+:::{.callout-note}
+## Leakage Inside Cross-Validation
+
+Cross-validation only works if each fold is treated like genuinely unseen data.
+
+That means any operation that learns from the data must be carried out **inside** each training fold:
+
+- scaling and standardization
+- imputation of missing values
+- feature selection or dimensionality reduction
+- target transformations chosen from the data
+
+If these steps are done on the full dataset before cross-validation, the validation folds leak information into training and the reported performance is too optimistic.
+:::
 
 ## K-Fold Cross-Validation
 
@@ -213,6 +244,19 @@ When dealing with classification problems, especially with imbalanced classes, i
 Standard K-Fold cross-validation is not suitable for time series data because it assumes that the data points are independent and identically distributed (i.i.d.). In time series, there is a temporal dependency; the order of the data matters. Randomly shuffling and splitting time series data would lead to **data leakage**, where the model is trained on data from the future to predict the past, leading to an overly optimistic performance estimate.
 
 Specialized cross-validation techniques are needed for time series data.
+
+:::{.callout-warning}
+## Econometric Warning
+
+In forecasting applications, leakage can arise even without explicit shuffling. Examples include:
+
+- predictors that are revised ex post
+- features published with delay
+- overlapping forecast targets
+- preprocessing performed using information from the full sample
+
+So “time-aware” cross-validation must reflect the actual information set available at the forecast origin.
+:::
 
 ### Expanding Window (or Rolling-Origin)
 
@@ -309,11 +353,13 @@ Scikit-learn's `TimeSeriesSplit` implements the expanding window approach. A sli
 
 ## Practical Example: Tuning a Neural Network with Cross-Validation
 
-Let's see how to use cross-validation to select the best hyperparameters for a simple neural network, see [Section 5](feed_forward_nns.qmd) . We'll tune the number of hidden units and the learning rate using scikit-learn. Note that the sklearn implementation maximizes the ***negative mean squared error***; that is, higher cross-validation score means better performance.
+Let's see how to use cross-validation to select the best hyperparameters for a simple neural network; see [Section 5](feed_forward_nns.qmd). We will tune the number of hidden units and the learning rate using scikit-learn.
+
+To keep the example honest, we put standardization and model fitting into a single `Pipeline`. This ensures that scaling is learned separately inside each training fold rather than on the full dataset.
 
 ```{python}
 #| label: nn-cv-tuning
-#| fig-cap: "Cross-validation results for neural network hyperparameter tuning. The whiskers in the plot "
+#| fig-cap: "Cross-validation results for neural network hyperparameter tuning."
 #| echo: true
 import numpy as np
 import matplotlib.pyplot as plt
@@ -362,22 +408,22 @@ for params in ParameterGrid(param_grid):
         'hidden_layers': str(params['hidden_layer_sizes']),
         'learning_rate': params['learning_rate_init'],
         'alpha': params['alpha'],
-        'mean_cv_score': cv_scores.mean(), # Convert to positive MSE
-        'std_cv_score': cv_scores.std()
+        'mean_cv_mse': -cv_scores.mean(),
+        'std_cv_mse': cv_scores.std()
     })
 
 # Convert to DataFrame for easier analysis
 results_df = pd.DataFrame(results)
 
 # Find best configuration
-best_idx = results_df['mean_cv_score'].idxmax()
+best_idx = results_df['mean_cv_mse'].idxmin()
 best_config = results_df.iloc[best_idx]
 
 print("Best Configuration:")
 print(f"Hidden Layers: {best_config['hidden_layers']}")
 print(f"Learning Rate: {best_config['learning_rate']}")
 print(f"Alpha (L2 reg): {best_config['alpha']}")
-print(f"CV Score: {best_config['mean_cv_score']:.4f} ± {best_config['std_cv_score']:.4f}")
+print(f"CV MSE: {best_config['mean_cv_mse']:.4f} ± {best_config['std_cv_mse']:.4f}")
 
 # Visualize results
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
@@ -385,7 +431,7 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 # Plot 1: Learning rate vs performance (all configurations)
 for alpha_val in results_df['alpha'].unique():
     subset = results_df[results_df['alpha'] == alpha_val]
-    ax1.scatter(subset['learning_rate'], subset['mean_cv_score'], 
+    ax1.scatter(subset['learning_rate'], subset['mean_cv_mse'], 
                label=f'α={alpha_val}', alpha=0.7, s=50)
 
 ax1.set_xlabel('Learning Rate')
@@ -407,7 +453,7 @@ jitter = np.random.normal(0, 0.05, len(results_df))
 
 for lr_val in results_df['learning_rate'].unique():
     subset = results_df[results_df['learning_rate'] == lr_val]
-    ax2.scatter(subset['arch_pos'] + jitter[subset.index], subset['mean_cv_score'], 
+    ax2.scatter(subset['arch_pos'] + jitter[subset.index], subset['mean_cv_mse'], 
                label=f'LR={lr_val}', alpha=0.7, s=50)
 
 ax2.set_xlabel('Architecture')
@@ -421,7 +467,7 @@ ax2.legend(title='Learning Rate')
 # Highlight best configuration
 best_lr = best_config['learning_rate']
 best_arch_pos = arch_mapping[best_config['hidden_layers']]
-best_score = best_config['mean_cv_score']
+best_score = best_config['mean_cv_mse']
 
 ax1.scatter([best_lr], [best_score], color='red', s=100, marker='*', 
            edgecolors='black', linewidth=1, label='Best Config', zorder=5)
@@ -437,7 +483,7 @@ plt.show()
 
 # Show top 5 configurations
 print("\nTop 5 Configurations:")
-print(results_df.nlargest(5, 'mean_cv_score')[['hidden_layers', 'learning_rate', 'alpha', 'mean_cv_score', 'std_cv_score']])
+print(results_df.nsmallest(5, 'mean_cv_mse')[['hidden_layers', 'learning_rate', 'alpha', 'mean_cv_mse', 'std_cv_mse']])
 ```
 
 :::{.callout-note}
@@ -445,7 +491,8 @@ print(results_df.nlargest(5, 'mean_cv_score')[['hidden_layers', 'learning_rate',
 
 1. **Systematic Search**: We test multiple combinations of hyperparameters systematically rather than guessing
 2. **Robust Evaluation**: Each configuration is evaluated using 5-fold cross-validation, giving us both mean performance and uncertainty estimates
-3. **Fair Comparison**: All models are evaluated on the same data splits, ensuring fair comparison
+3. **Leakage Prevention**: The `Pipeline` ensures that standardization is re-estimated inside each fold
+4. **Fair Comparison**: All models are evaluated on the same data splits, ensuring fair comparison
 :::
 
 :::{.callout-tip}
@@ -456,10 +503,11 @@ For deep neural networks with many hyperparameters, consider:
 - **Random Search**: Sample hyperparameters randomly instead of exhaustive grid search
 - **Bayesian Optimization**: Use libraries like `optuna` or `hyperopt` for more efficient search
 - **Early Stopping**: Monitor validation performance during training to avoid overfitting
+- **Nested Cross-Validation**: Use an outer loop for final performance assessment if hyperparameter search itself is extensive
 :::
 
 <!-- 
-## References`
+## References
 
 ::: {#refs}
 :::` -->
