@@ -5,17 +5,21 @@ number-offset: [5, 0]  # This makes sections 6.1, 6.2, etc.
 
 # Recurrent Neural Networks
 
-## Motivation: Limitations of Feed-Forward Networks
+## Overview
 
-Feed-forward networks have a fundamental limitation: they treat every input as an independent event. They have no built-in mechanism to understand sequence or time, which is a critical feature of most economic and financial data.
+Feed-forward neural networks are flexible nonlinear maps from an input vector to an output, but they do not have a built-in state variable. If we want to use them for time series, we usually have to create lagged inputs manually, such as $(y_{t-1}, y_{t-2}, \ldots, y_{t-p})$. That approach is often useful, but it fixes the memory length $p$ in advance and treats temporal dependence as a feature-engineering problem.
 
-**Examples in Economics Where Sequence Matters:**
+Recurrent neural networks (RNNs) add a hidden state that is updated over time. This makes them closer in spirit to econometric models with state variables, such as ARMA, state-space, or GARCH-type models. The difference is that the state update is not specified as a fixed linear recursion; it is learned from data through a nonlinear parameterized function.
 
--   **Time Series Forecasting:** Predicting future GDP, inflation, or stock prices depends on their historical path.
--   **Textual Analysis:** The meaning of a word in a financial news article or policy document depends on the words that came before it.
--   **Consumer Behavior:** A person's next purchase is often influenced by their previous purchases.
+This chapter introduces the basic RNN architecture, interprets it through an econometric state-variable lens, and explains the central difficulty of standard RNNs: vanishing gradients. That difficulty is the main reason why the next chapter moves to Long Short-Term Memory (LSTM) networks.
 
-A common workaround is to manually create features from past data, such as including lagged values ($y_{t-1}, y_{t-2}, \dots$) as inputs to a standard FNN. However, this requires pre-selecting a fixed window of history (the lag length $p$) and cannot gracefully handle long-range or variable-length dependencies. We need an architecture designed specifically for sequences.
+## Roadmap
+
+1. We first explain why sequence data require a different architecture than ordinary feed-forward networks.
+2. We then introduce the RNN hidden state and the standard update equations.
+3. Next, we connect RNNs to econometric state-variable models such as GARCH.
+4. We discuss deterministic versus probabilistic outputs for forecasting applications.
+5. We finish with backpropagation through time, the vanishing gradient problem, and the motivation for LSTMs.
 
 ## The Core Idea of RNNs: A State That Remembers
 
@@ -98,7 +102,7 @@ with the following parameters:
 
 In RNN implementations, the tanh function is often used as the activation function $g$.
 
-**Key Properties:**
+**Key Properties**
 
 - **Parameter Sharing:** The same weight matrices ($\mathbf{W}_{hh}, \mathbf{W}_{xh}, \mathbf{W}_{hy}$) and biases are used at *every time step*. This makes the model efficient and allows it to generalize across sequences of different lengths.
 - **Memory:** The hidden state $\mathbf{h}_t$ is the crucial component that allows information to persist, enabling the network to learn from context that appeared many steps in the past.
@@ -157,10 +161,38 @@ This long product is the source of the so-called **vanishing gradient problem**.
 
 ::: {.callout-note}
 #### GARCH Analogy
-If you ever implemented a GARCH model, you know that the likelihood depends on all past data and this makes estimation more complex.
+If you have implemented a GARCH model, you have already seen the key difficulty: the likelihood depends on a recursively updated state, so estimation must keep track of how current parameters affect future states. RNNs face the same type of recursive dependence, but with a nonlinear, high-dimensional hidden state.
 :::
 
 The fundamental limitation of vanishing long-run dependence motivates the development of more advanced architectures like Long Short-Term Memory (LSTM) networks, which are designed to mitigate the vanishing gradient problem.
+
+:::{.callout-important}
+## Bridge to LSTM Networks
+
+The point of this chapter is not that plain RNNs are the best architecture for macroeconomic or financial sequences. The point is that plain RNNs make the core problem visible: learning long-run dependence requires gradients to carry information across many time steps. LSTMs modify the hidden-state update so that information can be preserved more reliably.
+:::
+
+## Key Takeaways
+
+:::{.callout-important}
+1. A recurrent neural network augments a feed-forward network with a hidden state that is updated over time.
+2. This hidden state gives the model a learned memory, making RNNs natural for time series, text, and other ordered economic data.
+3. Econometrically, an RNN can be interpreted as a flexible nonlinear state-update model, similar in spirit to GARCH or state-space recursions but less tightly specified.
+4. A standard RNN output is deterministic unless we combine it with a probabilistic layer or likelihood.
+5. Training uses backpropagation through time, which applies the chain rule to an unrolled sequence of hidden states.
+6. The main limitation of plain RNNs is the vanishing gradient problem: early time steps can have almost no influence on parameter updates for long sequences.
+7. The vanishing gradient problem is the main conceptual bridge to LSTM networks in the next chapter.
+:::
+
+## Common Pitfalls
+
+:::{.callout-warning}
+- Treating an RNN hidden state as directly interpretable in the same way as a scalar GARCH variance or an AR state.
+- Forgetting that a deterministic RNN forecast is not automatically a full predictive distribution.
+- Randomly shuffling time-series observations before training or evaluation, thereby destroying the temporal information structure.
+- Assuming that a plain RNN can learn very long-run dependence just because the hidden state is recursively updated.
+- Confusing the unrolled computational graph used for training with a model that has different parameters at each time step; standard RNNs share parameters over time.
+:::
 
 
 ## Exercises
@@ -175,8 +207,6 @@ In this exercise, we examine the vanishing gradient problem in RNNs. Consider a 
 1. **Derive the gradient formula for backpropagation through time.** Using the chain rule, derive the expression for $\frac{\partial L_T}{\partial W_h}$. Show that it involves the term $\frac{\partial h_T}{\partial h_t}$ for each time step $t = 1, 2, \ldots, T$ and express it as a product of derivatives.
 2. **Prove gradient vanishing conditions.** Show that $\left |\frac{\partial h_T}{\partial h_t}\right | \leq | W_h |^{T-t}$ and explain why this leads to exponentially vanishing gradients when $|W_h | < 1$.
 3. **Analyze learning implications.** Explain why vanishing gradients prevent RNNs from learning long-term dependencies, including the effect on parameter updates for early time steps and typical sequence length limitations.
-
-<span style="color:blue"> I extended the solution of part 1 with more explanations.<span>
 
 *Technically at exam level. However, it's hard to come up with variations of this exercise. Hence, any exam question would be very close to this setup.*
 :::

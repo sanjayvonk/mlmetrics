@@ -6,6 +6,7 @@ website:
   title: "Machine Learning for Econometricians"
   page-navigation: true
   sidebar:
+    logo: logo.png
     style: "floating"
     search: true
     collapse-level: 0
