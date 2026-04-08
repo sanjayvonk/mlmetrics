@@ -41,7 +41,7 @@ Exercises must be suitable for a **3-hour handwritten exam**:
 
 Exercises should be calibrated for **MSc econometrics students with strong statistics/econometrics training**. The goal is not merely to check whether students recognize notation, but whether they can work through a statistically meaningful argument under exam conditions.
 
-- **Target time per sub-part**: as a default, each numbered sub-part should take roughly **5 minutes** for a well-prepared student. If a sub-part can be answered in 30-60 seconds by copying a formula from the notes, it is too short unless it is only scaffolding for a harder follow-up part.
+- **Target time per sub-part**: as a default, each numbered sub-part should take roughly **5-10 minutes** for a well-prepared student. If a sub-part can be answered in 30-60 seconds by copying a formula from the notes, it is too short unless it is only scaffolding for a harder follow-up part.
 - **Statistical substance**: each exercise should contain reasonably difficult statistical content. Prefer derivations, comparisons of estimators or loss functions, conditional-vs-unconditional reasoning, misspecification analysis, dependence/non-iid issues, identification, or interpretation of formal results.
 - **Not just interpretation**: interpretation questions are useful, but they should usually come **after** a nontrivial derivation or formal step. Do not let an exercise consist mainly of short conceptual prompts with no mathematical work.
 - **Not just notation drills**: avoid exercises that only ask students to restate a definition, copy a likelihood, verify a trivial positivity/probability constraint, or substitute symbols into a formula already given in the text. Such tasks are acceptable only as a first part that prepares a deeper second or third part.
@@ -60,7 +60,7 @@ Unless the chapter genuinely does not support it, aim for exercises with this pr
 
 Before keeping an exercise, check:
 
-- Would a strong student need around **5 minutes** for each sub-part?
+- Would a strong student need around **5-10 minutes** for each sub-part?
 - Does at least one sub-part require a nontrivial statistical derivation or argument?
 - Does the exercise go beyond formula recall?
 - Would the solution reveal whether the student actually understands the chapter?
