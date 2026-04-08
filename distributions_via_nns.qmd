@@ -5,17 +5,38 @@ number-offset: [8, 0]
 
 # Distributional Neural Networks
 
-In many economic and financial applications, the signal-to-noise ratio is low, and decisions depend on the entire forecast distribution, not just a single point estimate. While standard deep learning models trained with Mean Squared Error (MSE) are powerful tools for estimating the conditional mean, $\mathbb{E}[y|X]$, they often provide a poor and overconfident assessment of uncertainty.
+## Overview
 
-Distributional Neural Networks address this by reframing the prediction problem. Instead of predicting a single value, the network predicts the parameters of a full probability distribution.
+In many economic and financial applications, the signal-to-noise ratio is low, and decisions depend on the entire forecast distribution, not just a single point estimate. A central bank may care about downside inflation risk, a financial economist may care about the left tail of returns, and a risk manager may care about the probability of a large loss. A neural network trained with mean squared error can be useful for estimating a conditional mean, $\mathbb{E}[y \mid x]$, but it does not by itself provide a calibrated predictive distribution.
+
+Distributional neural networks address this by reframing the prediction problem. Instead of predicting a single number, the network predicts the parameters of a full conditional distribution. This connects the neural-network chapters back to the earlier chapters on information theory and evaluating predictive distributions: likelihood-based training corresponds to the log score, and alternative proper scoring rules such as the CRPS can also be used when we want different sensitivity to tails or outliers.
+
+## Roadmap
+
+1. We first contrast point-prediction networks with distributional networks.
+2. We then connect negative log-likelihood training to cross-entropy, KL divergence, and proper scoring rules.
+3. Next, we study Gaussian distributional networks and the instability that arises when mean and variance are trained jointly.
+4. We use Hemisphere Neural Networks as a case study for stabilizing distributional estimation in macro-financial settings.
+5. We close with Mixture Density Networks for richer conditional distributions, followed by key takeaways and common pitfalls.
+
+## From Point Forecasts to Predictive Distributions
+
+A standard neural network trained with mean squared error produces a point forecast:
 
 -   **Traditional NN Output**: $\hat{y} = f_\theta(\mathbf{x})$
--   **Distributional NN Output**: $p(y|\mathbf{x}) = \text{Distribution}(\boldsymbol{\theta}(\mathbf{x}))$, where $\boldsymbol{\theta}(\mathbf{x}) = f_\phi(\mathbf{x})$ are the distribution parameters learned by the network.
+-   **Distributional NN Output**: $p_\phi(y \mid \mathbf{x}) = p(y \mid \boldsymbol{\eta}_\phi(\mathbf{x}))$, where $\boldsymbol{\eta}_\phi(\mathbf{x})$ are the distribution parameters learned by the network.
 
-The model is trained by maximizing the log-likelihood of the data, which is equivalent to minimizing the negative log-likelihood loss:
+The distributional version replaces the scalar output by one or more output heads that map features into distributional parameters. For example, a Gaussian distributional network can produce a conditional mean and variance, while a Student-t network can additionally produce a degrees-of-freedom parameter.
+
+The model is typically trained by maximizing the log-likelihood of the data, which is equivalent to minimizing the negative log-likelihood loss:
+
 $$
-\mathcal{L}(\phi) = -\sum_{i=1}^n \log p(y_i|\mathbf{x}_i; \boldsymbol{\theta}(\mathbf{x}_i))
+\mathcal{L}(\phi) = -\sum_{i=1}^n \log p(y_i \mid \mathbf{x}_i; \boldsymbol{\eta}_\phi(\mathbf{x}_i))
 $$
+
+Here, $y_i$ is the observed outcome, $\mathbf{x}_i$ is the feature vector, $\boldsymbol{\eta}_\phi(\mathbf{x}_i)$ denotes the distributional parameters implied by the neural network, and $\phi$ collects all trainable network weights.
+
+## Training Scores and Information Theory
 
 :::{.callout-important}
 ## Information-theoretic interpretation
@@ -23,20 +44,28 @@ $$
 This NLL objective is the same cross-entropy loss we encountered in the [Information Theory chapter](information_theory.qmd#sec-mle-kl-divergence): minimizing it is equivalent to minimizing the KL divergence between the empirical data distribution and the network's predicted distribution. Unlike a standard neural network trained with MSE (which only targets the conditional mean), a distributional network trained with NLL targets the full conditional density — and KL divergence penalizes every aspect of distributional misspecification, including the tails.
 :::
 
-Of course, the optimization could also be done by another proper scoring rule like the continuous-ranked probability score.
+The same logic can be stated in the language of proper scoring rules. The negative log-likelihood corresponds to the logarithmic score: after observing $y_i$, the model is rewarded for assigning high density to the realized outcome. Minimizing average NLL is therefore the training analogue of minimizing the out-of-sample log score.
+
+Other proper scoring rules can also be used as training losses if they are computable and differentiable for the chosen predictive family. For example, the continuous ranked probability score (CRPS) compares the full predictive CDF to the realized outcome. The choice of training score should match the forecasting object: log-likelihood is very sensitive to tail misspecification and extreme observations, while CRPS often behaves more like an integrated distributional error.
+
+:::{.callout-note}
+## Link to Predictive-Distribution Evaluation
+
+Training a distributional neural network and evaluating a distributional forecast are two sides of the same problem. During training, a proper scoring rule defines the loss. During evaluation, the same class of scores can be used out of sample to compare predictive distributions.
+:::
 
 ## A Case Study: Hemisphere Neural Networks (HNN)
 
-A key challenge in distributional modeling is reliably estimating multiple distribution parameters at once. Let's consider the Gaussian case where we want to learn both the conditional mean and variance:
+A key challenge in distributional modeling is reliably estimating multiple distribution parameters at once. Consider the Gaussian case where we want to learn both the conditional mean and variance:
 $$
-y_{t+1}\,|\,X_t \sim \mathcal{N}\big(\mu_t, \sigma_t^2\big),\quad
-\mu_t = f_\theta(x_t),\ \ \sigma_t^2 = g(x_t)>0
+y_{t+1}\,|\,\mathbf{x}_t \sim \mathcal{N}\big(\mu_t, \sigma_t^2\big),\quad
+\mu_t = f_{\phi_\mu}(\mathbf{x}_t),\ \ \sigma_t^2 = g_{\phi_\sigma}(\mathbf{x}_t)>0
 $$
 The per-time-step negative log-likelihood loss is (up to constants):
 $$
-\ell_t(\theta,\phi)= \frac{(y_{t+1}-f_\theta(x_t))^2}{g(x_t)} + \log g(x_t)
+\ell_t(\phi_\mu,\phi_\sigma)= \frac{(y_{t+1}-f_{\phi_\mu}(\mathbf{x}_t))^2}{g_{\phi_\sigma}(\mathbf{x}_t)} + \log g_{\phi_\sigma}(\mathbf{x}_t)
 $$
-In highly overparameterized models, jointly training for $\mu_t$ and $\sigma_t^2$ via MLE is unstable. The model can achieve a low loss by either letting the mean network perfectly overfit (driving residuals and thus variance to zero) or by letting the variance network absorb all the variation. This is the "double descent" problem in a distributional context.
+In highly overparameterized models, jointly training for $\mu_t$ and $\sigma_t^2$ via MLE can be unstable. The model can achieve a low loss by letting the mean network overfit, which drives residuals and therefore the fitted variance toward zero, or by letting the variance network absorb too much variation. This is a distributional overfitting problem: the model has to learn both the location and the uncertainty, and the two tasks can interfere with each other.
 
 The **Hemisphere Neural Network (HNN)** architecture, proposed in a recent working paper by @GouletCoulombeFrenneteKlieber2023, is designed to stabilize this process.
 
@@ -78,7 +107,7 @@ knitr::include_graphics(paths)
 ```
 
 
-This structure allows the model to learn both **reactive volatility** (where variance spikes *after* shocks, like in GARCH) and **proactive volatility** (where variance rises *before* shocks, based on leading indicators in $x_t$).
+This structure allows the model to learn both **reactive volatility** (where variance spikes *after* shocks, like in GARCH) and **proactive volatility** (where variance rises *before* shocks, based on leading indicators in $\mathbf{x}_t$). The econometric intuition is that some variables may move the conditional mean, some may move conditional uncertainty, and some may affect both.
 
 **Stabilizing Joint MLE in Practice**
 
@@ -86,9 +115,9 @@ The HNN framework introduces two key ingredients to discipline the unstable MLE 
 
 1.  **Volatility-Emphasis Constraint**: Anchor the *average* predicted variance during training to a plausible level:
     $$
-    \frac{1}{T}\sum_t g(X_t) \approx \nu\cdot \operatorname{Var}(y)
+    \frac{1}{T}\sum_t g_{\phi_\sigma}(\mathbf{x}_t) \approx \kappa\cdot \operatorname{Var}(y_{t+1})
     $$
-    The target level $\nu$ is determined from the out-of-bag residuals of a standard (non-distributional) neural network. This forces both hemispheres to contribute to the fit.
+    The target multiplier $\kappa$ is determined from the out-of-bag residuals of a standard non-distributional neural network. This forces both hemispheres to contribute to the fit.
 
 2.  **Blocked Subsampling (Time-Aware Bagging)**: The model is trained many times on different, non-overlapping time blocks ("bags"). The final predictions for $\mu_t$ and $\sigma_t^2$ are formed by averaging the predictions from models where time $t$ was held out-of-bag. This stabilizes the predictions and makes them robust to initialization.
 
@@ -96,20 +125,20 @@ The HNN framework introduces two key ingredients to discipline the unstable MLE 
 
 -   **Hyperparameters**: A typical HNN might use 2 hidden layers for the core and 2 for each hemisphere, with ReLU activations, Adam optimization, and dropout.
 -   **Beyond Gaussian**: The hemisphere approach can be extended to other distributions (e.g., Student-t) by adding a third hemisphere for the degrees of freedom parameter, $\nu$.
--   **Temporal Dynamics**: To capture GARCH-like effects more directly, lagged outcomes or squared residuals can be included as features in $X_t$. For more complex sequences, the common core could be an LSTM.
+-   **Temporal Dynamics**: To capture GARCH-like effects more directly, lagged outcomes or squared residuals can be included as features in $\mathbf{x}_t$. For more complex sequences, the common core could be an LSTM.
 
 ## Handling Complex Distributions: Mixture Density Networks (MDNs)
 
 For distributions that are skewed, fat-tailed, or multi-modal, a single parametric form is too restrictive. **Mixture Density Networks (MDNs)** proposed by @Bishop1994 address this by modeling the conditional distribution as a mixture of simpler ones, like Gaussians:
 $$
-p(y|x)=\sum_{k=1}^K \pi_k(x)\,\mathcal{N}\!\big(y;\,\mu_k(x),\,\sigma_k^2(x)\big)
+p(y \mid \mathbf{x})=\sum_{k=1}^K \pi_k(\mathbf{x})\,\mathcal{N}\!\big(y;\,\mu_k(\mathbf{x}),\,\sigma_k^2(\mathbf{x})\big)
 $$
 
 The network has three output heads to predict the parameters for all $K$ components:
 
--   **Mixing Weights $\pi_k(x)$**: A `softmax` layer ensures the weights are positive and sum to 1.
--   **Means $\mu_k(x)$**: A linear layer.
--   **Standard Deviations $\sigma_k(x)$**: A `softplus` layer ensures positivity.
+-   **Mixing Weights $\pi_k(\mathbf{x})$**: A `softmax` layer ensures the weights are positive and sum to 1.
+-   **Means $\mu_k(\mathbf{x})$**: A linear layer.
+-   **Standard Deviations $\sigma_k(\mathbf{x})$**: A `softplus` layer ensures positivity.
 
 MDNs are particularly useful for modeling phenomena with distinct underlying states or regimes, which can lead to multi-modal distributions. Examples include:
 
@@ -117,4 +146,31 @@ MDNs are particularly useful for modeling phenomena with distinct underlying sta
 -   Asset returns with regime switching behavior.
 -   Labor market dynamics that might feature multiple equilibria.
 
-Unfortunately, MDNs can be challenging to train due to issues like component collapse (where one component dominates) and numerical instability from near-zero variances. These are often managed with careful initialization, regularization on mixing weights, and setting a minimum floor for $\sigma_k$.
+MDNs can be challenging to train due to issues like component collapse, where one component dominates, and numerical instability from near-zero variances. These are often managed with careful initialization, regularization on mixing weights, and setting a minimum floor for $\sigma_k$.
+
+:::{.callout-important}
+## Econometric Interpretation
+
+An MDN is a flexible way to approximate a conditional density with latent regimes. It should not automatically be interpreted as a structural regime-switching model: the mixture components are learned predictive components unless additional economic restrictions are imposed.
+:::
+
+## Summary
+
+:::{.callout-important}
+## Key Takeaways
+1. Distributional neural networks predict parameters of a conditional distribution rather than only a point forecast.
+2. Negative log-likelihood training is the neural-network version of log-score minimization and links directly to cross-entropy and KL divergence.
+3. Other proper scoring rules, such as CRPS, can be used when they better match the desired forecast-evaluation criterion and are differentiable for the chosen model.
+4. Jointly estimating conditional means and variances can be unstable in overparameterized networks because the mean and variance heads can substitute for each other.
+5. Hemisphere Neural Networks stabilize Gaussian distributional learning by separating mean and variance heads after a shared representation.
+6. Mixture Density Networks allow richer shapes such as skewness, fat tails, and multiple modes, but introduce additional training and interpretation challenges.
+:::
+
+:::{.callout-warning}
+## Common Pitfalls
+- Treating a distributional network as calibrated merely because it outputs a density.
+- Forgetting that variance or scale outputs must be constrained to be positive, for example with a softplus transformation or a variance floor.
+- Interpreting mixture components as economic regimes without additional identifying restrictions.
+- Optimizing in-sample log-likelihood while ignoring out-of-sample calibration, PIT behavior, CRPS, or tail performance.
+- Using a very flexible distributional architecture in a small macroeconomic sample without strong validation or regularization.
+:::
