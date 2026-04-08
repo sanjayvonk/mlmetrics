@@ -44,7 +44,7 @@ Here, $y_i$ is the observed outcome, $\mathbf{x}_i$ is the feature vector, $\bol
 :::{.callout-important}
 ## Information-theoretic interpretation
 
-This NLL objective is the same cross-entropy loss we encountered in @sec-mle-kl-divergence: minimizing it is equivalent to minimizing the KL divergence between the empirical data distribution and the network's predicted distribution. Unlike a standard neural network trained with MSE, which only targets the conditional mean, a distributional network trained with NLL targets the full conditional density and therefore penalizes every aspect of distributional misspecification, including the tails.
+This NLL objective is the same cross-entropy loss we encountered in the [MLE-as-KL discussion](information_theory.qmd#sec-mle-kl-divergence): minimizing it is equivalent to minimizing the KL divergence between the empirical data distribution and the network's predicted distribution. Unlike a standard neural network trained with MSE, which only targets the conditional mean, a distributional network trained with NLL targets the full conditional density and therefore penalizes every aspect of distributional misspecification, including the tails.
 :::
 
 The same logic can be stated in the language of proper scoring rules. The negative log-likelihood corresponds to the logarithmic score: after observing $y_i$, the model is rewarded for assigning high density to the realized outcome. Minimizing average NLL is therefore the training analogue of minimizing the out-of-sample log score; see the discussion of LogS and CRPS in the [Evaluating Predictive Distributions chapter](evaluating_distributions.qmd).
