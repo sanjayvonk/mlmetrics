@@ -571,7 +571,7 @@ Under squared-error loss, the optimal point forecast is the conditional mean. Un
 :::{.callout-tip collapse="true"}
 ## Solution
 
-**Part 1**
+**Part 1: Writing the Gaussian Log Score**
 
 For a Gaussian predictive density,
 $$
@@ -585,7 +585,7 @@ $$
 \frac{1}{2}\log(2\pi\sigma^2)+\frac{(y-\mu)^2}{2\sigma^2}.
 $$
 
-**Part 2**
+**Part 2: Taking the Expected Log Score**
 
 Take expectation under $Y\sim \mathcal{N}(\mu_0,\sigma_0^2)$:
 $$
@@ -609,7 +609,7 @@ $$
 +\frac{\sigma_0^2+(\mu_0-\mu)^2}{2\sigma^2}.
 $$
 
-**Part 3**
+**Part 3: Optimizing over Mean and Variance**
 
 First differentiate with respect to $\mu$:
 $$
@@ -642,7 +642,7 @@ $$
 $$
 Hence the expected log score is minimized at the true mean and the true variance.
 
-**Part 4**
+**Part 4: Why LogS Goes Beyond Point Forecasts**
 
 Point-forecast evaluation with MSE only asks for the optimal point forecast, which is the conditional mean. It does not reward or penalize the predictive variance at all.
 
@@ -695,7 +695,7 @@ For the degenerate forecast, the integrand is zero on one side of the interval b
 :::{.callout-tip collapse="true"}
 ## Solution
 
-**Part 1**
+**Part 1: Expected CRPS Decomposition**
 
 By definition,
 $$
@@ -738,7 +738,7 @@ $$
 \int_{-\infty}^{\infty}F(z)\big(1-F(z)\big)\,dz.
 $$
 
-**Part 2**
+**Part 2: Propriety of CRPS**
 
 The second integral depends only on the true distribution $F$. So the only term depending on the forecast $G$ is
 $$
@@ -746,7 +746,7 @@ $$
 $$
 which is nonnegative and equals zero if and only if $G(z)=F(z)$ for all $z$. Hence the expected CRPS is minimized at the true forecast distribution $G=F$.
 
-**Part 3**
+**Part 3: Degenerate Forecasts and Absolute Error**
 
 Now let
 $$
@@ -845,7 +845,7 @@ and simplify the ratio.
 :::{.callout-tip collapse="true"}
 ## Solution
 
-**Part 1**
+**Part 1: Deriving the PIT Distribution**
 
 Since $\Phi$ is strictly increasing,
 $$
@@ -885,7 +885,7 @@ f_U(u)
 \frac{\phi\big(\sigma\Phi^{-1}(u)\big)}{\phi\big(\Phi^{-1}(u)\big)}.
 $$
 
-**Part 2**
+**Part 2: Recovering Uniformity Under Correct Specification**
 
 If $\sigma=1$, then from Part 1
 $$
@@ -893,7 +893,7 @@ $$
 $$
 So $U$ has the Uniform$(0,1)$ distribution.
 
-**Part 3**
+**Part 3: Why Dispersion Errors Distort the PIT Histogram**
 
 Let $z=\Phi^{-1}(u)$. Then
 $$

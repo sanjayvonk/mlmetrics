@@ -494,7 +494,7 @@ These concepts underlie many machine-learning and econometric tools, including m
 ## Exercises
 
 :::{.callout-note}
-## Exercise 1.1 Differential Entropy of Gaussian Distribution
+## Exercise 1.1: Differential Entropy of Gaussian Distribution
 Let $X \sim \mathcal{N}(0, \sigma^2)$ with density
 $$
 p(x)=\frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{x^2}{2\sigma^2}\right).
@@ -522,7 +522,7 @@ Entropy is increasing in $\sigma^2$ for a Gaussian distribution.
 :::{.callout-tip collapse="true"}
 ## Solution
 
-**Part 1**
+**Part 1: Deriving Gaussian Entropy**
 
 The log-density is
 $$
@@ -540,7 +540,7 @@ h(X)=\frac{1}{2}\log(2\pi\sigma^2)+\frac{1}{2}
 =\frac{1}{2}\log(2\pi e \sigma^2).
 $$
 
-**Part 2**
+**Part 2: Interpreting Predictive Uncertainty**
 
 For a Gaussian distribution,
 $$
@@ -596,9 +596,14 @@ Expand the KL divergence into an entropy term and a cross-entropy term.
 Insert the Gaussian log-density for $q$ and use the fact that $p$ and $q$ have the same mean and variance.
 :::
 
+:::{.callout-warning collapse="true"}
+## Hint for Part 3
+Ask what it means for a predictive density to be as diffuse as possible subject to a fixed variance.
+:::
+
 :::{.callout-tip collapse="true"}
 ## Solution
-**Part 1**
+**Part 1: From KL to a Cross-Entropy Bound**
 
 Because
 $$
@@ -614,7 +619,7 @@ $$
 h(p) \le -\int p(x)\log q(x)\,dx.
 $$
 
-**Part 2**
+**Part 2: Evaluating the Gaussian Cross-Entropy**
 
 The Gaussian log-density is
 $$
@@ -640,7 +645,7 @@ $$
 = h(q).
 $$
 
-**Part 3**
+**Part 3: Interpreting the Maximum-Entropy Result**
 
 Combining Parts 1 and 2 gives
 $$
@@ -671,9 +676,19 @@ $$ D_{\text{KL}}(p \parallel q) = \sum_{x \in \mathcal{X}} p(x) \log\frac{p(x)}{
 Use **Jensen's inequality**, which states that for a convex function $f$, $\mathbb{E}[f(X)] \geq f(\mathbb{E}[X])$. Remember that $-\log(x)$ is a convex function.
 :::
 
+:::{.callout-warning collapse="true"}
+## Hint for Part 2
+Equality in Jensen's inequality requires the argument of the convex function to be almost surely constant.
+:::
+
+:::{.callout-warning collapse="true"}
+## Hint for Part 3
+Relate KL divergence to the expected log-score gap between a model and the true distribution.
+:::
+
 :::{.callout-tip collapse="true"}
 ## Solution
-**Part 1**
+**Part 1: Jensen's Inequality**
 
 Let's rewrite the KL divergence definition:
 $$ D_{\text{KL}}(p \parallel q) = \sum_{x} p(x) \log\frac{p(x)}{q(x)} = - \sum_{x} p(x) \log\frac{q(x)}{p(x)} $$
@@ -691,13 +706,13 @@ Substituting this back into our inequality:
 $$ D_{\text{KL}}(p \parallel q) \ge -\log(1) = 0 $$
 This proves that $D_{\text{KL}}(p \parallel q) \ge 0$.
 
-**Part 2**
+**Part 2: Characterizing Equality**
 
 For the equality condition, Jensen's inequality holds with equality if and only if the random variable is a constant. In our case, this means $\frac{q(x)}{p(x)} = c$ for some constant $c$.
 $$ \sum_x q(x) = \sum_x c \cdot p(x) \implies 1 = c \sum_x p(x) \implies c=1 $$
 Therefore, equality holds if and only if $\frac{q(x)}{p(x)} = 1$, which means $p(x) = q(x)$ for all $x$.
 
-**Part 3**
+**Part 3: Why This Matters for Model Comparison**
 
 This matters because KL divergence measures the expected log-score gap between the true distribution and an approximating model. Non-negativity says that, on average, no misspecified model can outperform the truth under log score. That is why KL divergence is a natural measure of model misspecification in likelihood-based econometrics and density forecasting.
 :::
@@ -732,10 +747,15 @@ The proof relies on the **change of variables formula** for probability densitie
 Start by writing out the definition of $D_{\text{KL}}(p_Y \parallel q_Y)$ and focus on simplifying the ratio $\frac{p_Y(y)}{q_Y(y)}$ first.
 :::
 
+:::{.callout-warning collapse="true"}
+## Hint for Part 3
+After proving invariance, ask why a divergence measure should not depend on the coordinate system in which the same data are expressed.
+:::
+
 :::{.callout-tip collapse="true"}
 ## Solution
 
-**Part 1**
+**Part 1: Transforming the Densities**
 
 Let $y=g(x)$ be an invertible transformation, so $x=g^{-1}(y)$. The probability densities for the new variable $y$ are given by:
 $$
@@ -743,7 +763,7 @@ p_Y(y) = p_X(g^{-1}(y)) \left| \frac{dx}{dy} \right| \quad \text{and} \quad q_Y(
 $$
 where $\left| \frac{dx}{dy} \right|$ is the absolute value of the first-order derivative of the inverse transformation $g^{-1}$.
 
-**Part 2**
+**Part 2: Canceling the Jacobian**
 
 The KL divergence for $Y$ is $D_{\text{KL}}(p_Y \parallel q_Y) = \int p_Y(y) \log\frac{p_Y(y)}{q_Y(y)} \,dy$. Let's analyze the ratio inside the logarithm. The derivative terms, being identical for both transformations, cancel out:
 $$
@@ -751,7 +771,7 @@ $$
 $$
 This is the crucial step. The relative difference between the densities is independent of the coordinate system.
 
-**Part 3**
+**Part 3: Proving and Interpreting Invariance**
 
 Now, substitute the transformed density $p_Y(y)$ and the simplified ratio back into the KL divergence formula:
 $$
@@ -783,8 +803,13 @@ so the two Gaussian distributions have the same variance but different means.
    $$
    D_{\mathrm{KL}}(P\Vert Q)=\frac{(\mu_0-\mu_1)^2}{2\sigma^2}.
    $$
-2. Show that the divergence is zero if and only if $\mu_0=\mu_1$, and explain why the divergence grows quadratically in the misspecification of the mean.
-3. Suppose $P$ is the true predictive density and two competing models imply means $\mu_A$ and $\mu_B$ with the same variance $\sigma^2$. Explain which model is preferred under KL divergence and why this is equivalent to choosing the model with the smaller squared mean error.
+2. Suppose two competing models $Q_A=\mathcal{N}(\mu_A,\sigma^2)$ and $Q_B=\mathcal{N}(\mu_B,\sigma^2)$ use the same variance as the true density $P$. Show that
+   $$
+   D_{\mathrm{KL}}(P\Vert Q_A)<D_{\mathrm{KL}}(P\Vert Q_B)
+   \quad\Longleftrightarrow\quad
+   |\mu_0-\mu_A|<|\mu_0-\mu_B|.
+   $$
+3. Explain why, in this special Gaussian case, KL-based model comparison is equivalent to comparing squared forecast bias in the conditional mean.
 
 *Exam level. The exercise keeps the Gaussian calculation manageable and then links it to likelihood-based model comparison.*
 :::
@@ -794,9 +819,19 @@ so the two Gaussian distributions have the same variance but different means.
 Because the variances are equal, the normalization constants cancel in the log ratio.
 :::
 
+:::{.callout-warning collapse="true"}
+## Hint for Part 2
+Use the formula from Part 1 for each competing model and compare the resulting squared distances from $\mu_0$.
+:::
+
+:::{.callout-warning collapse="true"}
+## Hint for Part 3
+What remains of the KL formula once the predictive variance is fixed across all competing models?
+:::
+
 ::: {.callout-tip collapse="true"}
 ## Solution
-**Part 1**
+**Part 1: Computing the Gaussian KL Divergence**
 
 The KL divergence is
 $$
@@ -833,19 +868,28 @@ D_{\mathrm{KL}}(P\Vert Q)
 =\frac{(\mu_0-\mu_1)^2}{2\sigma^2}.
 $$
 
-**Part 2**
+**Part 2: Ranking Competing Mean Forecasts**
 
-The divergence is zero if and only if $(\mu_0-\mu_1)^2=0$, that is, if and only if $\mu_0=\mu_1$. Because the formula is quadratic in $(\mu_0-\mu_1)$, mean misspecification is penalized more severely the further the model mean moves away from the truth.
-
-**Part 3**
-
-If both competing models use the same variance $\sigma^2$, then their KL divergences from the true density are
+From Part 1,
 $$
-\frac{(\mu_0-\mu_A)^2}{2\sigma^2}
-\qquad \text{and} \qquad
-\frac{(\mu_0-\mu_B)^2}{2\sigma^2}.
+D_{\mathrm{KL}}(P\Vert Q_A)=\frac{(\mu_0-\mu_A)^2}{2\sigma^2},
+\qquad
+D_{\mathrm{KL}}(P\Vert Q_B)=\frac{(\mu_0-\mu_B)^2}{2\sigma^2}.
 $$
-So the preferred model is the one with the smaller squared mean error. In this special Gaussian case, minimizing KL divergence is therefore equivalent to minimizing squared forecast bias in the conditional mean.
+Because the common factor $1/(2\sigma^2)$ is positive,
+$$
+D_{\mathrm{KL}}(P\Vert Q_A)<D_{\mathrm{KL}}(P\Vert Q_B)
+\quad\Longleftrightarrow\quad
+(\mu_0-\mu_A)^2<(\mu_0-\mu_B)^2.
+$$
+Since both sides are nonnegative, this is equivalent to
+$$
+|\mu_0-\mu_A|<|\mu_0-\mu_B|.
+$$
+
+**Part 3: Interpreting KL-Based Model Comparison**
+
+When the predictive variance is fixed, the KL divergence depends only on the squared distance between the model mean and the true mean. So in this special Gaussian case, KL-based model comparison is equivalent to comparing squared forecast bias in the conditional mean.
 
 :::
 
@@ -861,7 +905,11 @@ Let $X$ and $Y$ be discrete random variables with joint distribution $p(x,y)$.
    $$
    I(X;Y)=\mathbb{H}(X)+\mathbb{H}(Y)-\mathbb{H}(X,Y).
    $$
-   Use Part 1 to show that independence implies $I(X;Y)=0$.
+   and prove that
+   $$
+   I(X;Y)=D_{\mathrm{KL}}\!\big(p(x,y)\,\|\,p(x)p(y)\big).
+   $$
+   Use this to show that independence implies $I(X;Y)=0$.
 3. Explain why a positive value of mutual information is useful in applied work even when the linear correlation between $X$ and $Y$ is zero.
 
 *Exam level. The exercise connects entropy additivity to the interpretation of mutual information as a general dependence measure.*
@@ -872,10 +920,20 @@ Let $X$ and $Y$ be discrete random variables with joint distribution $p(x,y)$.
 Start with the definition of joint entropy and use the fact that for independent variables, $p(x,y) = p(x)p(y)$.
 :::
 
+:::{.callout-warning collapse="true"}
+## Hint for Part 2
+Write the KL divergence between the joint distribution and the product of the marginals, then expand the logarithm.
+:::
+
+:::{.callout-warning collapse="true"}
+## Hint for Part 3
+Think of settings where the dependence is nonlinear, so correlation can be zero even though one variable still helps predict the other.
+:::
+
 ::: {.callout-tip collapse="true"}
 ## Solution
 
-**Part 1**
+**Part 1: Entropy Additivity Under Independence**
 
 \begin{align}
 \mathbb{H}(X,Y) &= -\sum_{x,y} p(x,y)\log p(x,y) && \text{(definition)}\\
@@ -886,22 +944,30 @@ Start with the definition of joint entropy and use the fact that for independent
 &= \mathbb{H}(X) + \mathbb{H}(Y)
 \end{align}
 
-**Part 2**
+**Part 2: Mutual Information as a KL Divergence**
 
-By definition,
+We have
 $$
-I(X;Y)=\mathbb{H}(X)+\mathbb{H}(Y)-\mathbb{H}(X,Y).
+D_{\mathrm{KL}}\!\big(p(x,y)\,\|\,p(x)p(y)\big)
+=
+\sum_{x,y} p(x,y)\log\frac{p(x,y)}{p(x)p(y)}.
 $$
-If $X$ and $Y$ are independent, Part 1 shows that
-$$
-\mathbb{H}(X,Y)=\mathbb{H}(X)+\mathbb{H}(Y),
-$$
-so
+\begin{align*}
+D_{\mathrm{KL}}\!\big(p(x,y)\,\|\,p(x)p(y)\big)
+&=
+\sum_{x,y} p(x,y)\log p(x,y)
+- \sum_{x,y} p(x,y)\log p(x)
+- \sum_{x,y} p(x,y)\log p(y) \\
+&=
+-\mathbb{H}(X,Y)+\mathbb{H}(X)+\mathbb{H}(Y) \\
+&= I(X;Y).
+\end{align*}
+If $X$ and $Y$ are independent, then $p(x,y)=p(x)p(y)$, so the KL divergence is zero and therefore
 $$
 I(X;Y)=0.
 $$
 
-**Part 3**
+**Part 3: Why Mutual Information Adds Value**
 
 A positive mutual information means that knowing one variable reduces uncertainty about the other, even if the relationship is nonlinear and therefore invisible to correlation. This is useful in applications such as feature screening and forecast combination, where economically relevant dependence need not be linear.
 :::

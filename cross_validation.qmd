@@ -610,7 +610,7 @@ Compare the multiplicative factor linking $z_j^{\text{full}}$ and $\Delta_j$ wit
 :::{.callout-tip collapse="true"}
 ## Solution
 
-**Part 1**
+**Part 1: Mean Leakage from Full-Sample Standardization**
 
 We have
 $$
@@ -622,7 +622,7 @@ $$
 =\bar{x}_{-j}+\frac{x_j-\bar{x}_{-j}}{T}.
 $$
 
-**Part 2**
+**Part 2: Variance Leakage from Full-Sample Standardization**
 
 We start from
 $$
@@ -664,7 +664,7 @@ $$
 s^2=\frac{T-1}{T}s_{-j}^2+\frac{T-1}{T^2}(x_j-\bar{x}_{-j})^2.
 $$
 
-**Part 3**
+**Part 3: Closed-Form Expression for the Contaminated Z-Score**
 
 From Part 1,
 $$
@@ -691,7 +691,7 @@ z_j^{\text{full}}
 \frac{\sqrt{T-1}\,\Delta_j}{\sqrt{T+\Delta_j^2}}.
 $$
 
-**Part 4**
+**Part 4: Why the Validation Observation Shrinks Itself**
 
 We have
 $$
@@ -785,7 +785,7 @@ Unbiasedness holds model by model. The bias appears after taking the minimum acr
 :::{.callout-tip collapse="true"}
 ## Solution
 
-**Part 1**
+**Part 1: Writing the Selected Validation Score**
 
 Apply the identity with $a=\hat{R}_A$ and $b=\hat{R}_B$:
 $$
@@ -799,7 +799,7 @@ $$
 =R+\frac{\varepsilon_A+\varepsilon_B-|\varepsilon_A-\varepsilon_B|}{2}.
 $$
 
-**Part 2**
+**Part 2: Showing the Optimism Bias**
 
 Taking expectations,
 $$
@@ -818,7 +818,7 @@ $$
 \mathbb{E}\big[\min(\hat{R}_A,\hat{R}_B)\big] < R.
 $$
 
-**Part 3**
+**Part 3: Exact Gaussian Optimism**
 
 Under the additional assumption,
 $$
@@ -843,7 +843,7 @@ R-\frac{1}{2}\cdot \frac{2\sigma}{\sqrt{\pi}}
 R-\frac{\sigma}{\sqrt{\pi}}.
 $$
 
-**Part 4**
+**Part 4: Why Specification Search Creates Bias**
 
 Each candidate validation score is unbiased when viewed separately:
 $$
@@ -918,7 +918,7 @@ Compare the two MSPE formulas. Ask which one is relevant for the deployment prob
 :::{.callout-tip collapse="true"}
 ## Solution
 
-**Part 1**
+**Part 1: Deriving the Feasible Real-Time Forecast**
 
 We have
 $$
@@ -935,7 +935,7 @@ $$
 \beta\rho z_{t-1}.
 $$
 
-**Part 2**
+**Part 2: Real-Time Forecast Error and MSPE**
 
 The real-time forecast error is
 $$
@@ -961,7 +961,7 @@ $$
 $$
 using independence of $\xi_t$ and $u_{t+1}$.
 
-**Part 3**
+**Part 3: Oracle Forecast Error and MSPE**
 
 The oracle forecast error is
 $$
@@ -978,7 +978,7 @@ $$
 \operatorname{MSPE}_{\text{oracle}}=\operatorname{Var}(u_{t+1})=\sigma_u^2.
 $$
 
-**Part 4**
+**Part 4: Why Random CV Becomes Infeasible**
 
 The oracle forecast is better on paper because it uses information that is unavailable in real time:
 $$

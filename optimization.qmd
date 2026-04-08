@@ -812,7 +812,7 @@ Compare the learning rate that would be natural for the flat direction, $1/b$, w
 :::{.callout-tip collapse="true"}
 ## Solution
 
-**Part 1**
+**Part 1: Coordinate-Wise Gradient Descent Updates**
 
 The gradient is
 $$
@@ -833,7 +833,7 @@ $$
 =(1-\eta b)\theta_2^{(t)}.
 $$
 
-**Part 2**
+**Part 2: Deriving the Convergence Restriction**
 
 The iterates converge to zero if and only if both scalar recursions contract:
 $$
@@ -852,7 +852,7 @@ $$
 0<\eta<\frac{2}{a}.
 $$
 
-**Part 3**
+**Part 3: Why Ill-Conditioning Slows Optimization**
 
 If $a\gg b$, then the objective is much steeper in the $\theta_1$ direction than in the $\theta_2$ direction. Stability forces
 $$
@@ -921,7 +921,7 @@ $$
 :::{.callout-tip collapse="true"}
 ## Solution
 
-**Part 1**
+**Part 1: Unbiasedness of the Mini-Batch Gradient**
 
 Let
 $$
@@ -950,7 +950,7 @@ $$
 
 So the mini-batch gradient is an unbiased estimator of the full gradient.
 
-**Part 2**
+**Part 2: Variance Under Sampling Without Replacement**
 
 For scalar values $z_1,\dots,z_N$, the sample mean over a simple random sample without replacement satisfies
 $$
@@ -971,7 +971,7 @@ $$
 
 This is exactly the stated formula.
 
-**Part 3**
+**Part 3: Why Gradient Noise Can Help**
 
 The variance factor
 $$
@@ -987,58 +987,91 @@ Before moving on to neural networks, note the chapter boundary: so far the objec
 :::
 
 :::{.callout-note}
-## Exercise 4.3: Diagnosing Learning Curves
+## Exercise 4.3: Momentum on a Quadratic Objective
 
-For each of the following training scenarios, choose:
+Consider the one-dimensional quadratic objective
+$$
+L(\theta)=\frac{a}{2}\theta^2,
+\qquad a>0,
+$$
+and the momentum updates
+$$
+v_t=\delta v_{t-1}+(1-\delta)a\theta_t,
+\qquad
+\theta_{t+1}=\theta_t-\eta v_t,
+$$
+where $\eta>0$ is the learning rate and $\delta\in[0,1)$ is the momentum parameter.
 
-- the most likely diagnosis from `{underfitting / optimization too slow, overfitting, learning rate too high}`
-- the most appropriate first response from `{increase learning rate, add regularization or early stopping, reduce learning rate}`
+1. Eliminate $v_t$ and show that $\theta_t$ satisfies the second-order recursion
+   $$
+   \theta_{t+1}
+   =
+   \big(1+\delta-\eta(1-\delta)a\big)\theta_t
+   -\delta \theta_{t-1}.
+   $$
+2. Show that when $\delta=0$, this reduces to ordinary gradient descent on the quadratic objective.
+3. Explain why positive momentum can accelerate optimization along directions where the gradient keeps pointing in roughly the same direction, but can also create oscillation when the effective step size is too aggressive.
 
-Assume the model is trained with mini-batch gradient descent and performance is monitored on a validation set.
-
-1. The training loss and validation loss are both high, very close to each other, and both decrease only very slowly over many epochs.
-2. The training loss continues to fall, but the validation loss starts rising after an initial decline.
-3. Both the training loss and validation loss oscillate strongly from epoch to epoch and do not show a stable downward trend.
-
-*Exam level. The exercise turns learning-curve interpretation into a bounded diagnosis problem with definite answers.*
+*Exam level. The exercise turns momentum into a concrete dynamic system and shows how it differs from vanilla gradient descent.*
 :::
 
 :::{.callout-warning collapse="true"}
 ## Hint for Part 1
-A small train-validation gap usually points away from overfitting.
+Use the update equation at times $t$ and $t-1$ to write
+$$
+v_{t-1}=\frac{\theta_{t-1}-\theta_t}{\eta}.
+$$
 :::
 
 :::{.callout-warning collapse="true"}
 ## Hint for Part 2
-Here the optimization on the training sample is still improving, but out-of-sample performance is deteriorating.
+Set $\delta=0$ in the recursion from Part 1.
 :::
 
 :::{.callout-warning collapse="true"}
 ## Hint for Part 3
-Persistent oscillation is usually a sign that the optimization steps are too aggressive rather than too cautious.
+Compare the recursion with and without the lagged term $-\delta\theta_{t-1}$.
 :::
 
 :::{.callout-tip collapse="true"}
 ## Solution
 
-**Part 1**
+**Part 1: Deriving the Second-Order Recursion**
 
-Diagnosis: **underfitting / optimization too slow**.  
-First response: **increase learning rate**.
+From the parameter update,
+$$
+\theta_t=\theta_{t-1}-\eta v_{t-1},
+$$
+so
+$$
+v_{t-1}=\frac{\theta_{t-1}-\theta_t}{\eta}.
+$$
+Now substitute this into the momentum update:
+$$
+v_t=\delta \frac{\theta_{t-1}-\theta_t}{\eta}+(1-\delta)a\theta_t.
+$$
+Using $\theta_{t+1}=\theta_t-\eta v_t$, we obtain
+\begin{align*}
+\theta_{t+1}
+&=
+\theta_t-\eta\left[\delta \frac{\theta_{t-1}-\theta_t}{\eta}+(1-\delta)a\theta_t\right] \\
+&=
+\theta_t-\delta(\theta_{t-1}-\theta_t)-\eta(1-\delta)a\theta_t \\
+&=
+\big(1+\delta-\eta(1-\delta)a\big)\theta_t-\delta\theta_{t-1}.
+\end{align*}
 
-Reason: both losses are high and close, so the model is not primarily suffering from overfitting. The main issue is that optimization is progressing too slowly.
+**Part 2: Recovering Gradient Descent**
 
-**Part 2**
+If $\delta=0$, the recursion becomes
+$$
+\theta_{t+1}=(1-\eta a)\theta_t,
+$$
+which is exactly the gradient descent recursion for the quadratic objective $L(\theta)=\frac{a}{2}\theta^2$.
 
-Diagnosis: **overfitting**.  
-First response: **add regularization or early stopping**.
+**Part 3: Why Momentum Helps and When It Hurts**
 
-Reason: training performance keeps improving, but validation performance deteriorates. That is the standard pattern of overfitting.
+The new term $-\delta\theta_{t-1}$ makes the dynamics depend on the previous step as well as the current gradient. If the gradients keep pointing in roughly the same direction over several iterations, this persistence helps the algorithm build up speed and move faster than vanilla gradient descent.
 
-**Part 3**
-
-Diagnosis: **learning rate too high**.  
-First response: **reduce learning rate**.
-
-Reason: strong oscillation in both training and validation losses indicates unstable optimization steps that overshoot the local descent direction.
+But the same mechanism can also produce overshooting. If $\eta$ and $\delta$ together make the effective step too aggressive, the recursion can oscillate because the algorithm keeps carrying past motion even after the current gradient would call for slowing down. This is why momentum can accelerate convergence in shallow directions but may also create instability if not tuned carefully.
 :::
