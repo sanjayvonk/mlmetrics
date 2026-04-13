@@ -118,6 +118,15 @@ Additional section-depth rule:
 - Do not create a `##` section for only one short paragraph. If a local topic is that small, fold it into the surrounding section using a bold run-in label, a list item, or a callout title.
 - Use callout titles for exercise hints and solutions, but do not use nested section headings merely for visual spacing.
 
+Visual pedagogy rule:
+
+- Chapters should contain enough figures or diagrams to help readers conceptualize the central ideas rather than only reading definitions and formulas.
+- As a default, include multiple visuals across the chapter when the concepts are structural, geometric, sequential, or otherwise easier to understand graphically.
+- Prefer simple explanatory figures made in the repo over decorative visuals.
+- Every figure should have a clear teaching purpose and should be explicitly discussed in the surrounding main text rather than inserted without interpretation.
+- Figure captions should be as self-contained as possible: define what is shown, what the axes, colors, panels, or markers represent, and any special construction needed to read the figure.
+- Keep interpretation in the main text. Captions should describe the figure clearly, but the substantive lesson, econometric meaning, and model comparison should be explained in the surrounding prose.
+
 ## Summary section
 
 - Each chapter has a single `## Summary` heading that contains one or two callout boxes.
