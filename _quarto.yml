@@ -46,7 +46,7 @@ website:
           href: adv_tree_based_methods.qmd
     - section: "Further Topics"
       contents:
-        - text: "14. (Advanced) Hyperparameter Optimization"
+        - text: "14. Advanced Hyperparameter Optimization"
           href: hpo.qmd
         - text: "15. Conformal Prediction"
           href: conformal_prediction.qmd

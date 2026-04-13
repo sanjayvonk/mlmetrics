@@ -25,14 +25,13 @@ Throughout this chapter, the econometric interpretation remains central: a feed-
 4. We then discuss non-convexity, econometric interpretation, and practical training decisions.
 5. The chapter closes with applications, a chapter summary, common pitfalls, and exercises.
 
-## Mathematical Foundation
+## Basic Architecture {#sec-def-multilayer-nn}
 
-A neural network is a computational model inspired by biological neural networks, consisting of:
+**Mathematical Foundation.** A neural network is a computational model consisting of:
+
 - Interconnected nodes (neurons) organized in layers
 - Weighted connections that adjust during learning
 - Feed-forward information flow from input to output
-
-## Basic Architecture {#sec-def-multilayer-nn}
 
 A feed-forward neural network with $L$ layers can be written as a composition of functions:
 
@@ -139,8 +138,8 @@ In @fig-activation-functions, you can find the 4 most prevalent types of activat
 
 ```{python}
 #| label: fig-activation-functions
-# | fig-cap: "Common Activation Functions"
-#| echo: false
+#| fig-cap: "The four most common activation functions — Sigmoid, Tanh, ReLU, and Softplus — plotted against the pre-activation input $z$ (x-axis) and their output $g(z)$ (y-axis), arranged in a 2×2 grid. Dashed reference lines mark zero on both axes."
+#| echo: true
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -230,8 +229,7 @@ $$\sup_{x \in K} |\hat f(x) - f(x)| < \varepsilon.$$
 
 The notation here matches the single-hidden-layer representation introduced above. The same result extends from scalar $x$ to vector-valued $\mathbf{x} \in \mathbb{R}^k$.
 
-:::{.callout-note}
-## Practical Implications
+:::{.callout-note title="Practical Implications"}
 
 **The Good News**: Any continuous function can be approximated arbitrarily well by a neural network with just one hidden layer.
 
@@ -267,8 +265,7 @@ $$L(\boldsymbol{\theta}) = -\frac{1}{n} \sum_{i=1}^n \sum_{k=1}^K y_{ik} \log(\h
 
 where $y_{ik}$ is the one-hot encoded true label (for a definition see callout box below) and $\hat{p}_{ik} = \frac{\exp(f_k(x_i; \boldsymbol{\theta}))}{\sum_{j=1}^K \exp(f_j(x_i; \boldsymbol{\theta}))}$ is the softmax probability for class $k$.
 
-:::{.callout-note collapse = "true"}
-## Explanation of one-hot encoded
+:::{.callout-note collapse="true" title="Definition: One-hot Encoding"}
 
 One-hot encoding is a process of converting categorical variables into a binary vector representation. For a categorical variable with $K$ possible classes, each observation is represented by a vector of length $K$. This vector contains a single '1' in the position corresponding to the observation's class and '0's in all other positions.
 
@@ -281,15 +278,31 @@ Suppose we are classifying economic regimes into three categories: "Recession", 
 This representation is useful because it allows machine learning models, which operate on numerical inputs, to handle categorical data without implying an ordinal relationship between the categories (e.g., that "Boom" is 'greater' than "Recession").
 :::
 
-:::{.callout-important}
-## Connection to information theory
+:::{.callout-important title="Connection to Information Theory"}
 
 The cross-entropy loss is not just a convenient formula — it has a direct information-theoretic foundation. Recall from the [Information Theory chapter](information_theory.qmd#sec-mle-kl-divergence) that minimizing cross-entropy between the empirical data distribution and the model is equivalent to maximum likelihood estimation, which in turn minimizes the KL divergence between the two distributions. When we train a neural network with cross-entropy loss, we are implicitly finding the parameters $\boldsymbol{\theta}$ whose predicted class probabilities are closest (in KL divergence) to the true conditional class distribution.
 :::
 
-:::{.callout-note}
-## Point to think about
-Why is the cross-entropy loss for a binary classification a special case of the categorical cross-entropy loss with $K = 2$?
+:::{.callout-note title="Question for Reflection"}
+
+Why is the cross-entropy loss for binary classification a special case of the categorical cross-entropy loss with $K = 2$?
+:::
+
+:::{.callout-tip collapse="true" title="Suggested Answer"}
+
+With $K = 2$, the one-hot outcome vector has two entries, for example $(y_i, 1-y_i)$, and the softmax probability vector is $(p_i, 1-p_i)$. Plugging these into the categorical cross-entropy loss
+
+$$
+-\sum_{k=1}^2 y_{ik} \log \hat p_{ik}
+$$
+
+gives
+
+$$
+-\big[y_i \log p_i + (1-y_i)\log(1-p_i)\big],
+$$
+
+which is exactly the binary cross-entropy loss. So the binary case is not a different principle; it is the two-class version of the general categorical formula.
 :::
 
 **Gradient Descent Optimization**
@@ -317,7 +330,7 @@ The gradient descent algorithm iteratively moves in the direction of steepest de
 #|   - "Strictly convex: unique global minimum"
 #|   - "Non-convex: multiple local minima and dependence on initialization"
 #| layout-ncol: 2
-#| echo: false
+#| echo: true
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -389,7 +402,7 @@ fig2.tight_layout()
 
 ```
 
-**Key Insights of Figure 6.1:**
+**Key Insights of @fig-gd-convex-vs-nonconvex:**
 
 - **Convex function (left):** Any initialization converges to the unique global minimum; step sizes naturally shrink as the gradient norm decreases.
 - **Non-convex function (right):** Different initializations can fall into different local minima; reaching the global minimum is not guaranteed.
@@ -420,7 +433,7 @@ The gradient descent procedure for a neural network can be visualized as follows
 
 ```{mermaid}
 %%| label: fig-gd-process
-%%| fig-cap: "Gradient Descent Optimization Process"
+%%| fig-cap: "Flowchart of the gradient descent algorithm. Rectangular nodes represent computation steps (forward pass, loss evaluation, gradient computation, parameter update) and the diamond node is the convergence check. The loop continues until the gradient norm falls below a threshold $\\varepsilon$, at which point the current parameters are returned as the solution."
 flowchart TD
     %% Starting point
     START["θ⁽⁰⁾ (Initial Parameters)"] --> FORWARD["Forward Pass: Compute f(x; θ⁽ᵗ⁾)"]
@@ -520,8 +533,7 @@ $$\boldsymbol{\delta}^{(l)} = \mathbf{W}^{(l+1)T} \boldsymbol{\delta}^{(l+1)} \o
 
 The transpose ensures that gradients "flow backward" through the same connections that data flowed forward through, but in reverse order and with transposed weight matrices.
 
-::: {.callout-tip}
-## Full Gradient Update Step
+::: {.callout-tip title="Full Gradient Update Step"}
 
 In your optimization algorithm, you are currently at some point $\mathbf x_0$.
 
