@@ -166,7 +166,8 @@ Visual pedagogy rule:
 ## Code chunks
 
 - Python is the primary language for code examples
-- Display figures: `#| echo: false`, `#| label: fig-descriptive-name`, `#| fig-cap: "Caption"`
+- Display figures should normally keep the generating code foldable: use `#| echo: true`, `#| label: fig-descriptive-name`, and `#| fig-cap: "Caption"` so readers can expand the code if they want to inspect it.
+- Use `#| echo: false` for figure chunks only when showing the code is genuinely not feasible or would materially hurt readability.
 - Instructional code: `#| echo: true`
 - Global settings: `code-fold: true` (readers click "Show the code"), `cache: true`
 

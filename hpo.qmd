@@ -68,6 +68,57 @@ $$
 The inequality is strict unless the same configuration always wins. The intuition is simple: after search, the winning validation score is partly low because the model is good and partly low because its realized validation noise happened to be favorable.
 :::
 
+The same logic is visible in @fig-hpo-selection-bias. The selected configuration is the one with the lowest realized validation loss, but its blue point, which represents true risk, sits above the red validation point. The figure should be read as a visualization of selection-induced optimism, not as a claim about one particular algorithm.
+
+```{python}
+#| label: fig-hpo-selection-bias
+#| fig-cap: "Illustration of selection bias from hyperparameter search. The horizontal axis indexes 20 candidate configurations. The blue line shows each configuration's true risk, the red line shows a noisy validation estimate, and the dashed vertical line marks the configuration selected by minimizing validation loss. For the selected configuration, the realized validation loss lies below the true risk, illustrating how search can make the winner look too good."
+#| echo: true
+
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+
+rng = np.random.default_rng(14)
+n_cfg = 20
+cfg = np.arange(1, n_cfg + 1)
+
+true_risk = 0.56 + 0.02 * np.sin(cfg / 3) + 0.012 * np.log1p(cfg)
+true_risk[6] -= 0.04
+true_risk[12] -= 0.02
+validation_risk = true_risk + rng.normal(0.0, 0.035, n_cfg)
+
+best_idx = np.argmin(validation_risk)
+
+fig, ax = plt.subplots(figsize=(9, 4.8))
+ax.plot(cfg, true_risk, marker="o", linewidth=2, color="C0", label="True risk")
+ax.plot(cfg, validation_risk, marker="s", linewidth=1.6, color="C3", alpha=0.8, label="Validation estimate")
+ax.axvline(cfg[best_idx], linestyle="--", color="0.4", linewidth=1.4)
+ax.scatter(cfg[best_idx], validation_risk[best_idx], s=95, color="C3", zorder=3)
+ax.scatter(cfg[best_idx], true_risk[best_idx], s=95, color="C0", zorder=3)
+ax.annotate(
+    "Selected by validation",
+    xy=(cfg[best_idx], validation_risk[best_idx]),
+    xytext=(cfg[best_idx] + 1.2, validation_risk[best_idx] - 0.055),
+    arrowprops={"arrowstyle": "->", "color": "0.25"},
+    fontsize=10,
+)
+ax.annotate(
+    "True risk of selected configuration",
+    xy=(cfg[best_idx], true_risk[best_idx]),
+    xytext=(cfg[best_idx] + 1.2, true_risk[best_idx] + 0.03),
+    arrowprops={"arrowstyle": "->", "color": "0.25"},
+    fontsize=10,
+)
+ax.set_xlabel("Hyperparameter configuration")
+ax.set_ylabel("Loss")
+ax.set_title("Selection Bias from Searching Many Configurations")
+ax.grid(True, alpha=0.25)
+ax.legend(frameon=False, loc="upper left")
+plt.tight_layout()
+plt.show()
+```
+
 Nested resampling is the clean benchmark when we want an honest assessment of the entire tuning procedure.
 
 - The **inner loop** tunes hyperparameters.
@@ -149,6 +200,51 @@ If the preferred performance measure is larger-is-better, such as an $R^2$ or ut
 
 This low-effective-dimensionality logic is especially relevant in machine learning applications and is one of the central arguments of @BergstraBengio2012. A researcher may tune ten settings, but perhaps only learning rate, tree depth, and regularization strength move performance materially. A grid wastes effort spreading points evenly in all ten dimensions. Random search has a better chance of stumbling into useful combinations along the few dimensions that actually matter.
 
+This geometric point is illustrated in @fig-grid-vs-random. Both panels use the same number of evaluations, but the random design generates more distinct values along the important horizontal direction. The interpretation is not that random search is always better, but that equal-budget grid search can waste many trials refining irrelevant coordinates.
+
+```{python}
+#| label: fig-grid-vs-random
+#| fig-cap: "Stylized comparison of grid search and random search under low effective dimensionality. Each panel shows 25 evaluated configurations in a two-hyperparameter space. The shaded vertical band marks a narrow high-performance region in the important horizontal hyperparameter, while the vertical axis is less consequential. Random search produces more distinct draws along the important direction than the equally sized grid."
+#| echo: true
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+rng = np.random.default_rng(2)
+grid_vals = np.linspace(0.05, 0.95, 5)
+gx, gy = np.meshgrid(grid_vals, grid_vals)
+grid_x = gx.ravel()
+grid_y = gy.ravel()
+rand_x = rng.uniform(0.05, 0.95, 25)
+rand_y = rng.uniform(0.05, 0.95, 25)
+
+fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.6), sharex=True, sharey=True)
+for ax, xvals, yvals, title in [
+    (axes[0], grid_x, grid_y, "Grid search"),
+    (axes[1], rand_x, rand_y, "Random search"),
+]:
+    ax.axvspan(0.62, 0.78, color="C2", alpha=0.18)
+    ax.scatter(xvals, yvals, s=45, color="C0")
+    ax.set_title(title)
+    ax.set_xlabel("Important hyperparameter")
+    ax.grid(True, alpha=0.2)
+
+axes[0].set_ylabel("Less important hyperparameter")
+axes[0].annotate(
+    "Narrow high-performance region",
+    xy=(0.70, 0.88),
+    xytext=(0.17, 0.88),
+    arrowprops={"arrowstyle": "->", "color": "0.25"},
+    fontsize=10,
+)
+for ax in axes:
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+
+plt.tight_layout()
+plt.show()
+```
+
 **When baseline methods are enough.** If model evaluations are cheap, the search space is modest, and parallel compute is available, random search is often enough. It is easy to parallelize, robust to noise, and honest about uncertainty: it does not pretend to have learned a precise surrogate relationship from a small number of noisy evaluations.
 
 ## Bayesian Optimization
@@ -172,6 +268,63 @@ $$
 $$
 
 Points with low predicted loss and points with high uncertainty can both have high expected improvement. That is the exploration-versus-exploitation tradeoff in one formula [@JonesSchonlauWelch1998; @SnoekLarochelleAdams2012].
+
+Figure @fig-bo-ei makes this tradeoff visual. The top panel shows a surrogate mean together with its uncertainty band and the currently evaluated configurations. The bottom panel converts that information into expected improvement. The candidate with the highest expected improvement is not necessarily the point with the lowest surrogate mean; it can also be a point with substantial uncertainty.
+
+```{python}
+#| label: fig-bo-ei
+#| fig-cap: "Stylized Bayesian-optimization example in one hyperparameter dimension. The top panel shows a surrogate mean for validation loss, a 95% uncertainty band, previously evaluated configurations, and the current best observed loss. The bottom panel shows the resulting expected-improvement function. The dashed vertical line marks the next candidate selected by maximizing expected improvement, which reflects both predicted loss and uncertainty."
+#| echo: true
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = np.linspace(0.0, 1.0, 500)
+mean = 0.66 - 0.22 * np.exp(-((x - 0.28) / 0.14) ** 2) - 0.10 * np.exp(-((x - 0.78) / 0.11) ** 2)
+std = 0.035 + 0.11 * np.exp(-((x - 0.68) / 0.13) ** 2) + 0.015 * np.cos(2 * np.pi * x) ** 2
+
+obs_x = np.array([0.08, 0.22, 0.40, 0.58, 0.90])
+obs_y = np.array([0.67, 0.48, 0.59, 0.63, 0.61])
+best_y = obs_y.min()
+
+z = (best_y - mean) / std
+phi = np.exp(-0.5 * z**2) / np.sqrt(2 * np.pi)
+Phi = 0.5 * (1.0 + np.vectorize(math.erf)(z / np.sqrt(2.0)))
+ei = (best_y - mean) * Phi + std * phi
+
+candidate = x[np.argmax(ei)]
+
+fig, axes = plt.subplots(2, 1, figsize=(10, 6.6), sharex=True, gridspec_kw={"height_ratios": [2.2, 1]})
+
+axes[0].plot(x, mean, color="C0", linewidth=2.2, label="Surrogate mean")
+axes[0].fill_between(x, mean - 1.96 * std, mean + 1.96 * std, color="C0", alpha=0.18, label="95% uncertainty band")
+axes[0].scatter(obs_x, obs_y, color="black", s=42, zorder=3, label="Evaluated configurations")
+axes[0].axhline(best_y, color="C3", linestyle="--", linewidth=1.5, label="Current best loss")
+axes[0].axvline(candidate, color="0.35", linestyle="--", linewidth=1.4)
+axes[0].annotate(
+    "High uncertainty can justify exploration",
+    xy=(candidate, mean[np.argmax(ei)] + 0.12),
+    xytext=(0.08, 0.79),
+    arrowprops={"arrowstyle": "->", "color": "0.25"},
+    fontsize=10,
+)
+axes[0].set_ylabel("Loss")
+axes[0].set_title("Surrogate Model")
+axes[0].grid(True, alpha=0.2)
+axes[0].legend(frameon=False, loc="upper right")
+
+axes[1].plot(x, ei, color="C2", linewidth=2.2)
+axes[1].fill_between(x, 0, ei, color="C2", alpha=0.2)
+axes[1].axvline(candidate, color="0.35", linestyle="--", linewidth=1.4)
+axes[1].scatter(candidate, ei.max(), color="C2", s=55, zorder=3)
+axes[1].set_xlabel("Hyperparameter value")
+axes[1].set_ylabel("EI")
+axes[1].set_title("Expected Improvement")
+axes[1].grid(True, alpha=0.2)
+
+plt.tight_layout()
+plt.show()
+```
 
 :::{.callout-note title="Expected Improvement Under a Gaussian Surrogate"}
 
@@ -245,6 +398,8 @@ The tuning parameter $\gamma$ controls how selective the "good" set is. Smaller 
 
 ![One-dimensional illustration of TPE: the algorithm prefers candidate values that look likely under the good-trial density and unlikely under the bad-trial density.](figures/tpe_comparison.png){#fig-tpe-comparison fig-align="center" width="85%"}
 
+Figure @fig-tpe-comparison shows this density-ratio logic directly. The good-trial density $\ell(\lambda)$ is concentrated near values that have worked well before, while the bad-trial density $g(\lambda)$ penalizes values associated with poor trials. The candidate chosen next is the one where the ratio is most favorable.
+
 **GP BO versus TPE.** Both are sequential model-based search methods. GP BO is often cleaner conceptually when the search space is low-dimensional and mostly continuous. TPE is often more robust in practical AutoML-style settings with mixed types, wide ranges, or tree-structured conditional choices. The statistical point is the same: both use past evaluations to search more intelligently than random sampling.
 
 :::{.callout-note title="Question for Reflection"}
@@ -310,6 +465,69 @@ $$
 
 where bracket $s$ starts with $n_s$ configurations at resource level $r_s$. Large-$s$ brackets explore many configurations cheaply, while small-$s$ brackets explore fewer configurations more deeply from the start.
 :::
+
+Figure @fig-hyperband-brackets shows how these brackets differ. The wide bracket starts with many configurations and a very small budget, while the deep bracket starts with fewer configurations but allocates more resources immediately. Hyperband is attractive because it does not commit to one single breadth-versus-depth tradeoff in advance.
+
+```{python}
+#| label: fig-hyperband-brackets
+#| fig-cap: "Schematic view of three Hyperband brackets. Each rounded box reports the number of surviving configurations and the budget allocated to each one at a given stage. Moving from left to right within a bracket, fewer configurations remain and the budget per configuration rises. Across brackets, the wide bracket starts broad and cheap, the balanced bracket is intermediate, and the deep bracket starts with fewer candidates but a higher initial budget."
+#| echo: true
+
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch
+
+fig, ax = plt.subplots(figsize=(11, 5.2))
+ax.set_xlim(0, 12)
+ax.set_ylim(0, 8)
+ax.axis("off")
+
+stage_x = [1.1, 4.0, 6.9, 9.8]
+stage_labels = ["Stage 0", "Stage 1", "Stage 2", "Stage 3"]
+for xpos, label in zip(stage_x, stage_labels):
+    ax.text(xpos, 7.55, label, ha="center", va="bottom", fontsize=11, fontweight="bold")
+
+brackets = [
+    {"y": 6.2, "label": "Wide bracket", "counts": [27, 9, 3, 1], "budget": [1, 3, 9, 27], "color": "C0"},
+    {"y": 4.1, "label": "Balanced bracket", "counts": [9, 3, 1, None], "budget": [3, 9, 27, None], "color": "C1"},
+    {"y": 2.0, "label": "Deep bracket", "counts": [3, 1, None, None], "budget": [9, 27, None, None], "color": "C2"},
+]
+
+for bracket in brackets:
+    ax.text(0.15, bracket["y"], bracket["label"], ha="left", va="center", fontsize=11, fontweight="bold")
+    prev_x = None
+    prev_y = None
+    for xpos, count, budget in zip(stage_x, bracket["counts"], bracket["budget"]):
+        if count is None:
+            continue
+        width = 1.45
+        height = 0.72
+        patch = FancyBboxPatch(
+            (xpos - width / 2, bracket["y"] - height / 2),
+            width,
+            height,
+            boxstyle="round,pad=0.03,rounding_size=0.08",
+            facecolor=bracket["color"],
+            edgecolor="0.25",
+            alpha=0.22,
+        )
+        ax.add_patch(patch)
+        ax.text(xpos, bracket["y"] + 0.10, f"{count} configs", ha="center", va="center", fontsize=10)
+        ax.text(xpos, bracket["y"] - 0.14, f"budget {budget}", ha="center", va="center", fontsize=9)
+        if prev_x is not None:
+            ax.annotate(
+                "",
+                xy=(xpos - width / 2 - 0.08, bracket["y"]),
+                xytext=(prev_x + width / 2 + 0.08, prev_y),
+                arrowprops={"arrowstyle": "->", "color": "0.35", "linewidth": 1.2},
+            )
+        prev_x = xpos
+        prev_y = bracket["y"]
+
+ax.text(6.0, 0.55, "Moving right: fewer configurations receive more resources.", ha="center", fontsize=10)
+
+plt.tight_layout()
+plt.show()
+```
 
 **When multi-fidelity methods work well.** Hyperband is most attractive when:
 
