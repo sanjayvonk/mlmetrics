@@ -632,6 +632,192 @@ When would conformalized quantile regression be preferable to symmetric split co
 CQR is preferable when uncertainty is clearly heteroskedastic or asymmetric, so a constant-width symmetric band would be implausible. By starting from lower and upper quantile models, CQR can adapt interval width and skewness across the predictor space before conformal calibration corrects the overall coverage.
 :::
 
+## Real Data Example: Quarterly GDP Growth with FRED-QD
+
+The chapter is easier to interpret once we see the methods on real macroeconomic data. We therefore use the quarterly U.S. macro panel in [data/fred_qd_current.csv](/Users/onnokleen/Research-ML/Book_ML_Econometrics/data/fred_qd_current.csv), which is a local copy of the current FRED-QD release from the St. Louis Fed. The target is next-quarter annualized real GDP growth, constructed from `GDPC1`. The predictors are current-quarter macro and financial indicators: lagged GDP growth, lagged CPI inflation, the unemployment rate, the federal funds rate, the term spread, and a log volatility proxy based on `VIXCLSx`.
+
+This is still an illustration rather than a literal application of the split-conformal theorem. Quarterly macro data are time ordered and are not exchangeable. So the point of the example is practical: it shows how to adapt the chapter's logic to a forecasting design that respects time order, and it shows again why overall coverage can differ from subgroup coverage.
+
+To keep the empirical section transparent, we use only one method here: a split conformal interval around a random-forest point forecast. The sample is divided chronologically:
+
+1. training sample through 1999Q4
+2. calibration sample from 2000Q1 through 2011Q4
+3. test sample from 2012Q1 onward
+
+```{python}
+#| echo: true
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error
+
+raw = pd.read_csv("data/fred_qd_current.csv")
+fred_qd = raw.iloc[2:].copy()
+fred_qd["sasdate"] = pd.to_datetime(fred_qd["sasdate"])
+
+for column in fred_qd.columns:
+    if column != "sasdate":
+        fred_qd[column] = pd.to_numeric(fred_qd[column], errors="coerce")
+
+fred_qd = fred_qd.sort_values("sasdate").reset_index(drop=True)
+
+gdp_growth = 400 * np.log(fred_qd["GDPC1"]).diff()
+inflation = 400 * np.log(fred_qd["CPIAUCSL"]).diff()
+term_spread = fred_qd["GS10"] - fred_qd["TB3MS"]
+log_vix = np.log(fred_qd["VIXCLSx"])
+
+macro = pd.DataFrame(
+    {
+        "date": fred_qd["sasdate"],
+        "y_next": gdp_growth.shift(-1),
+        "gdp_growth_lag1": gdp_growth,
+        "gdp_growth_lag2": gdp_growth.shift(1),
+        "inflation_lag1": inflation,
+        "inflation_lag2": inflation.shift(1),
+        "unrate_lag1": fred_qd["UNRATE"],
+        "fedfunds_lag1": fred_qd["FEDFUNDS"],
+        "term_spread_lag1": term_spread,
+        "vix_lag1": log_vix,
+    }
+).dropna().reset_index(drop=True)
+
+train = macro[macro["date"] <= pd.Timestamp("1999-10-01")].copy()
+cal = macro[
+    (macro["date"] >= pd.Timestamp("2000-01-01"))
+    & (macro["date"] <= pd.Timestamp("2011-10-01"))
+].copy()
+test = macro[macro["date"] >= pd.Timestamp("2012-01-01")].copy()
+
+features = [column for column in macro.columns if column not in ["date", "y_next"]]
+
+def conformal_index(alpha, n):
+    return min(int(np.ceil((1 - alpha) * (n + 1))), n)
+
+alpha = 0.10
+model = RandomForestRegressor(n_estimators=500, min_samples_leaf=5, random_state=42)
+model.fit(train[features], train["y_next"])
+
+cal_pred = model.predict(cal[features])
+k = conformal_index(alpha, len(cal))
+qhat = np.sort(np.abs(cal["y_next"].to_numpy() - cal_pred))[k - 1]
+
+test = test.copy()
+test["pred"] = model.predict(test[features])
+test["lower"] = test["pred"] - qhat
+test["upper"] = test["pred"] + qhat
+test["covered"] = (test["y_next"] >= test["lower"]) & (test["y_next"] <= test["upper"])
+test["width"] = test["upper"] - test["lower"]
+
+vix_cutoff = test["vix_lag1"].quantile(0.80)
+test["high_vix"] = test["vix_lag1"] > vix_cutoff
+
+summary = pd.DataFrame(
+    {
+        "Statistic": [
+            "Training observations",
+            "Calibration observations",
+            "Test observations",
+            "Nominal coverage",
+            "Test coverage",
+            "Average interval width",
+            "Point-forecast MAE",
+            "High-VIX test coverage",
+            "High-VIX test observations",
+            "Conformal half-width",
+        ],
+        "Value": [
+            len(train),
+            len(cal),
+            len(test),
+            1 - alpha,
+            test["covered"].mean(),
+            test["width"].mean(),
+            mean_absolute_error(test["y_next"], test["pred"]),
+            test.loc[test["high_vix"], "covered"].mean(),
+            int(test["high_vix"].sum()),
+            qhat,
+        ],
+    }
+)
+
+display(summary.round(3))
+```
+
+This split produces 149 training quarters, 47 calibration quarters, and 53 test quarters. Overall test coverage is about 94%, which is slightly above the nominal 90% target. That is plausible because conformal coverage is finite-sample discrete, so mild overcoverage is common. The average interval width is about 13.7 annualized growth points, and the point-forecast MAE is about 3.15 points.
+
+The more revealing result is the subgroup comparison. If we classify the top quintile of test quarters by lagged VIX as high-volatility quarters, coverage falls to about 82% in that subgroup. That is exactly the lesson from the earlier theory discussion: marginal coverage can look adequate even though the method undercovers in a practically important regime.
+
+Figure @fig-conformal-fredqd-example makes the same point visually. The left panel plots the split-conformal band over the test period. The right panel compares overall coverage with the coverage in the high-VIX subgroup. The nominal 90% line is included so the interpretation stays tied to the calibration target rather than to a vague notion of “good” performance.
+
+```{python}
+#| label: fig-conformal-fredqd-example
+#| fig-cap: "Time-aware split conformal illustration using quarterly U.S. macro data from FRED-QD. The left panel shows the test-period one-quarter-ahead GDP-growth forecasts from the random-forest point predictor together with the split-conformal interval based on calibration residuals from 2000Q1-2011Q4. Black dots are realized next-quarter annualized GDP growth rates, and red markers indicate misses where the realization falls outside the conformal interval. The right panel compares empirical coverage over the full 2012 onward test sample with coverage in the highest-VIX quintile of test quarters. The dashed horizontal line marks the nominal 90% target."
+#| echo: true
+
+plot_df = test.copy().reset_index(drop=True)
+coverage_df = pd.DataFrame(
+    {
+        "group": ["Overall test sample", "High-VIX test quintile"],
+        "coverage": [
+            plot_df["covered"].mean(),
+            plot_df.loc[plot_df["high_vix"], "covered"].mean(),
+        ],
+    }
+)
+
+fig, axes = plt.subplots(1, 2, figsize=(12.2, 4.8))
+
+axes[0].fill_between(
+    plot_df["date"],
+    plot_df["lower"],
+    plot_df["upper"],
+    color="C0",
+    alpha=0.18,
+    label="Split conformal interval",
+)
+axes[0].plot(plot_df["date"], plot_df["pred"], color="C0", linewidth=1.8, label="Point forecast")
+axes[0].scatter(plot_df["date"], plot_df["y_next"], color="black", s=26, label="Realized growth", zorder=3)
+miss_mask = ~plot_df["covered"].to_numpy()
+axes[0].scatter(
+    plot_df.loc[miss_mask, "date"],
+    plot_df.loc[miss_mask, "y_next"],
+    color="C3",
+    s=34,
+    label="Miss",
+    zorder=4,
+)
+axes[0].set_title("FRED-QD Split Conformal Intervals")
+axes[0].set_xlabel("Forecast origin")
+axes[0].set_ylabel("Next-quarter annualized GDP growth")
+axes[0].grid(True, alpha=0.22)
+axes[0].legend(frameon=False, loc="upper left")
+
+bars = axes[1].bar(coverage_df["group"], coverage_df["coverage"], color=["C0", "C1"], alpha=0.85)
+axes[1].axhline(1 - alpha, color="0.35", linestyle="--", linewidth=1.6, label="Nominal coverage")
+axes[1].set_ylim(0, 1.05)
+axes[1].set_title("Overall Coverage vs High-Volatility Coverage")
+axes[1].set_ylabel("Empirical coverage")
+axes[1].grid(True, axis="y", alpha=0.22)
+axes[1].legend(frameon=False, loc="upper right")
+for bar in bars:
+    height = bar.get_height()
+    axes[1].text(
+        bar.get_x() + bar.get_width() / 2,
+        height + 0.03,
+        f"{height:.3f}",
+        ha="center",
+        va="bottom",
+        fontsize=10,
+    )
+
+plt.tight_layout()
+plt.show()
+```
+
+This example should not be overread. It is not a theorem check for dependent data, and it is not meant as a horse race among conformal variants. Its purpose is narrower: to show how a manual conformal workflow looks in a realistic macro forecasting design, and to make the distinction between overall coverage and regime-specific coverage concrete before we move on to more data-efficient conformal variants.
+
 ## Improving Data Efficiency: CV+ and Jackknife+
 
 Split conformal uses one part of the sample for fitting and another for calibration. This clean separation makes the theory easy, but it can waste data when the sample is small.
