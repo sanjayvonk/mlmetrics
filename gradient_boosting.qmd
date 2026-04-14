@@ -425,7 +425,7 @@ Like random forests, boosted trees should be understood as flexible predictive a
 ::: {.callout-note}
 ## Exercise 12.1: First Step of Gradient Boosting with Shrinkage
 
-You observe four data points:
+Suppose these are four monthly observations from a small forecasting exercise in which $y_i$ denotes next-month output growth and $x_i$ is a leading indicator. You observe:
 
 $$
 (x_i, y_i) = (1,2), (2,3), (3,2.5), (4,5).

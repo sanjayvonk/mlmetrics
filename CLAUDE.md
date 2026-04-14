@@ -36,6 +36,7 @@ Exercises must be suitable for a **3-hour handwritten exam**:
 - **Flexible number of sub-parts**: use as many sub-parts as the exercise actually needs. Do not default mechanically to four parts; many good exercises will naturally have 2 or 3 parts, while 4 parts should be used only when the structure genuinely adds value.
 - **No open-ended questions**: avoid "discuss the implications" or "what do you think about" style questions. Each part should have a definitive correct answer or derivation.
 - **Gradual difficulty**: hints guide students through harder exercises; a strong student should be able to solve without hints, but hints make the exercise accessible to all.
+- **Hints should be selective, not mechanical**: do not force one hint per sub-part. Add a hint only when it gives meaningful scaffolding, such as a useful intermediate step, a setup idea, or a warning about a common mistake. If a part is already direct and a hint would merely restate the question, omit the hint.
 - **Difficulty annotation**: include an italic comment about exam suitability, e.g., `*Could be part of an exam if broken into sub-exercises with hints.*`
 
 ## Difficulty calibration
@@ -95,6 +96,8 @@ Before keeping an exercise, check:
 [Full derivation/solution]
 :::
 ```
+
+Hints do not need to appear for every numbered part. Use only the hint boxes that materially help.
 
 ---
 
