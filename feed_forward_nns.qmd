@@ -19,7 +19,7 @@ Throughout this chapter, the econometric interpretation remains central: a feed-
 
 ## Roadmap
 
-1. We begin with the architecture of feed-forward networks and interpret them as flexible nonlinear basis expansions.
+1. We begin with the simplest building block, the perceptron, and then build up the architecture of feed-forward networks as flexible nonlinear basis expansions.
 2. We then discuss activation functions and the universal approximation theorem to clarify why nonlinear layers matter.
 3. Next, we connect neural-network estimation to loss minimization, maximum likelihood, gradient descent, and backpropagation.
 4. We then discuss non-convexity, econometric interpretation, and practical training decisions.
@@ -32,6 +32,52 @@ Throughout this chapter, the econometric interpretation remains central: a feed-
 - Interconnected nodes (neurons) organized in layers
 - Weighted connections that adjust during learning
 - Feed-forward information flow from input to output
+
+**Start With One Activated Linear Index.** The easiest way to remove the mystery is to begin with a single unit. A perceptron takes predictors $\mathbf{x}$, forms a linear index $\mathbf{x}'\mathbf{w}+b$, and then applies an activation function:
+
+$$
+\hat y = g(\mathbf{x}'\mathbf{w}+b).
+$$
+
+If $g$ is the identity, this is just a linear regression-style mapping. If $g$ is a sigmoid, the same linear index becomes a probability-like output for binary classification. In econometric language, the perceptron is not yet "deep learning"; it is a familiar index model plus a nonlinear link.
+
+```{python}
+#| label: fig-perceptron-threshold
+#| fig-cap: "A single perceptron classifies observations by applying an activation to a linear index. The dashed line is the zero-index decision boundary $x_2 = 1.4 - 0.8x_1$. Points on opposite sides of the boundary receive different classifications."
+#| echo: true
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+x1_red = np.array([0.4, 1.0, 1.6, 2.0, 2.6])
+x2_red = np.array([1.6, 2.3, 2.2, 2.8, 3.0])
+x1_blue = np.array([0.6, 1.3, 1.8, 2.4, 3.0])
+x2_blue = np.array([0.5, 0.9, 1.1, 1.0, 1.4])
+
+x_grid = np.linspace(0, 3.2, 200)
+boundary = 1.4 - 0.8 * x_grid
+
+fig, ax = plt.subplots(figsize=(6, 4))
+ax.scatter(x1_red, x2_red, color="#c44e52", s=60, label="Class 1")
+ax.scatter(x1_blue, x2_blue, color="#4c72b0", s=60, label="Class 0")
+ax.plot(x_grid, boundary, "--", color="0.3", lw=2, label="Decision boundary")
+
+ax.text(2.55, 2.55, r"$\mathbf{x}'\mathbf{w}+b>0$", fontsize=10,
+        bbox=dict(boxstyle="round,pad=0.2", facecolor="white", alpha=0.8))
+ax.text(2.3, 0.45, r"$\mathbf{x}'\mathbf{w}+b\leq 0$", fontsize=10,
+        bbox=dict(boxstyle="round,pad=0.2", facecolor="white", alpha=0.8))
+
+ax.set_xlabel(r"$x_1$")
+ax.set_ylabel(r"$x_2$")
+ax.set_xlim(0, 3.2)
+ax.set_ylim(0, 3.4)
+ax.legend(frameon=False, loc="upper left")
+ax.grid(alpha=0.25)
+plt.tight_layout()
+plt.show()
+```
+
+Figure @fig-perceptron-threshold is worth reading slowly. The only nonlinear element is the activation or threshold applied after the linear index. A feed-forward network simply stacks many such units, so that the outputs of one layer become regressors for the next layer. That is why neural networks can be understood as learned basis expansions rather than as a fundamentally alien model class.
 
 A feed-forward neural network with $L$ layers can be written as a composition of functions:
 
@@ -87,6 +133,8 @@ flowchart LR
     class Y output
 ```
 
+The diagram in Figure @fig-perceptron-threshold shows one unit. The architecture diagram above shows what changes in a multilayer network: instead of specifying a basis expansion by hand, we let the model learn many intermediate transformed regressors $a_j^{(l)}$ and then combine them again in later layers.
+
 **Single Hidden Layer Networks**
 
 For the exercises, we'll focus on single hidden layer networks, which have the form:
@@ -99,6 +147,33 @@ where:
 - $w_j^{(1)}, b_j^{(1)}$ are the input-to-hidden weights and biases
 - $w_j^{(2)}, b^{(2)}$ are the hidden-to-output weights and bias
 - $g(\cdot)$ is the activation function
+
+**Why Width and Depth Matter Quantitatively.** A useful discipline is to count parameters before discussing "big" or "small" networks. If the input dimension is $p$, a single-hidden-layer network with $H$ hidden units and one scalar output contains
+
+$$
+(p+1)H + (H+1) = H(p+2)+1
+$$
+
+parameters: $pH$ input-to-hidden weights, $H$ hidden biases, $H$ hidden-to-output weights, and one output bias. Even moderate changes in width can therefore increase estimation variance quickly when $p$ is already large.
+
+More generally, a fully connected network with hidden widths $H^{(1)}, \dots, H^{(L)}$ and one scalar output has
+
+$$
+\sum_{l=1}^{L} \big(H^{(l-1)} + 1\big) H^{(l)} + H^{(L)} + 1,
+\qquad H^{(0)} = p,
+$$
+
+parameters. This is one reason why validation discipline matters so much in econometric applications: architecture choice is itself a high-dimensional tuning problem, not just a cosmetic modeling choice.
+
+:::{.callout-note title="Question for Reflection"}
+
+Suppose a macro forecasting problem has $p=40$ predictors and you compare one hidden layer with $H=10$ against one hidden layer with $H=100$. How many parameters does each network have, and what does that imply for overfitting risk?
+:::
+
+:::{.callout-tip collapse="true" title="Suggested Answer"}
+
+With one scalar output, the count is $H(p+2)+1$. For $H=10$, this gives $10(42)+1=421$ parameters. For $H=100$, it gives $100(42)+1=4201$ parameters. The larger network is much more flexible, but it also has roughly ten times as many free parameters, so it can fit idiosyncratic sample noise much more easily unless the sample is large and validation supports the extra complexity.
+:::
 
 
 **Choosing Activation Functions for Economic Models**
