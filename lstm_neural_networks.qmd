@@ -306,7 +306,7 @@ This design is efficient, but it has a structural cost. If the predictively rele
 
 The next chapter, [Foundation Models for Economic Text and Expectations](foundation_models.qmd), introduces a different construction. At each step, instead of pushing the past through a recurrent state, the model explicitly forms a **weighted average of representations of all earlier positions**, with weights computed from learned similarities. This is the mechanism called **self-attention**. The advantage over a recurrent state is that nothing is pre-compressed: the set of available inputs at step $t$ is the entire history, and the model chooses at each step which earlier positions matter. The disadvantage is computational --- the number of similarity scores grows quadratically in the sequence length --- and for short sequences with strong local dependence an LSTM can still be competitive.
 
-The transition from recurrent states to attention is the single structural change that distinguishes the RNN/LSTM chapters from the foundation-model chapter. We return to it formally in @sec-fm-representations.
+The transition from recurrent states to attention is the single structural change that distinguishes the RNN/LSTM chapters from the foundation-model chapter. We return to it formally in [From Words to Representations](foundation_models.qmd#sec-fm-representations).
 
 ## Summary
 
