@@ -50,8 +50,8 @@ website:
           href: hpo.qmd
         - text: "15. Conformal Prediction"
           href: conformal_prediction.qmd
-        - text: "16. Reinforcement Learning"
-          href: reinforcement_learning.qmd
+        - text: "16. Foundation Models for Economic Text"
+          href: foundation_models.qmd
         - text: "17. Data Sets Used in This Book"
           href: datasets.qmd
   page-footer: "Copyright 2025, Onno Kleen" 
