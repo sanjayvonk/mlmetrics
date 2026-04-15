@@ -9,6 +9,11 @@ project:
 website:
   title: "MLmetrics: Machine Learning for Econometricians"
   site-url: https://mlmetrics.org
+  announcement:
+    dismissable: false
+    content: "**Under active development.** A stable version is expected in November 2026. Feedback is very welcome."
+    type: warning
+    position: below-navbar
   page-navigation: true
   sidebar:
     logo: logo.png
