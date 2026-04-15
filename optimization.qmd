@@ -704,16 +704,15 @@ for i, (path, title) in enumerate(paths_and_titles_nc):
     ax.contour(X_nc, Y_nc, Z_nc, levels=levels, alpha=0.6, colors='gray', linewidths=0.5)
     ax.contourf(X_nc, Y_nc, Z_nc, levels=levels, alpha=0.3, cmap='viridis')
     
-    # Plot global minima
-    for gm in global_minima:
-        ax.plot(gm[0], gm[1], 'k*', markersize=12, alpha=0.8)
+    # Plot the known global minimum once per panel
+    gm_x, gm_y = global_minima[0]
+    ax.plot(gm_x, gm_y, 'k*', markersize=12, alpha=0.8, label='Global minimum')
     
     # Plot optimization path
     if len(path) > 1:
         ax.plot(path[:, 0], path[:, 1], 'r-', linewidth=2, alpha=0.8)
         ax.plot(path[0, 0], path[0, 1], 'go', markersize=10, label='Start', zorder=5)
         ax.plot(path[-1, 0], path[-1, 1], 'ro', markersize=8, label='End', zorder=5)
-        ax.plot(0, 0, 'k*', markersize=15, label='Optimum', zorder=5)
         
         # Add arrows for direction (fewer for clarity)
         if len(path) > 5:
