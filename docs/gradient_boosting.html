@@ -20,7 +20,27 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -555,6 +575,7 @@ r_{im}
 \]</span></p>
 </div>
 <p>The next tree is fit to these pseudo-residuals, and the ensemble is updated in the direction of steepest descent in function space. That is why the method is called <strong>gradient</strong> boosting.</p>
+<p>To see the gradient structure precisely, think of <span class="math inline">\(F\)</span> as a vector <span class="math inline">\((F(x_1), \ldots, F(x_n))^\top \in \mathbb{R}^n\)</span>, where each coordinate is the fitted value at one training observation. The total loss is a function of this vector, <span class="math inline">\(\mathcal{L}(F) = \sum_{i=1}^n \ell(y_i, F(x_i))\)</span>, and the <span class="math inline">\(i\)</span>-th coordinate of its negative gradient at <span class="math inline">\(\hat F_{m-1}\)</span> is exactly <span class="math inline">\(r_{im}\)</span>. Boosting cannot step directly in this direction, because the result would be <span class="math inline">\(n\)</span> numbers with no way to generalize to new observations. Instead, each tree <span class="math inline">\(\hat{h}_m\)</span> approximates the negative gradient within a structured, tree-shaped function class. Fitting a tree to the pseudo-residuals is therefore fitting a generalizable approximation to the steepest-descent direction.</p>
 <p><strong>Classification with Bernoulli Log-Loss</strong></p>
 <p>For binary outcomes, write</p>
 <div class="display-math-block">
@@ -594,6 +615,54 @@ Connection to Cross-Entropy
 </div>
 <div class="callout-body-container callout-body">
 <p>For classification, boosting with Bernoulli log-loss is minimizing cross-entropy, i.e.&nbsp;the negative log-likelihood of a Bernoulli model. This links boosting directly to the <a href="./information_theory.html#sec-mle-kl-divergence">Information Theory chapter</a>: fitting the boosted classifier means reducing the discrepancy between observed class outcomes and predicted event probabilities.</p>
+</div>
+</div>
+<p><strong>AdaBoost as Exponential-Loss Boosting</strong></p>
+<p>The general gradient boosting framework unifies algorithms that were developed independently. AdaBoost, introduced by <span class="citation" data-cites="FreundSchapire1997">Freund and Schapire (<a href="#ref-FreundSchapire1997" role="doc-biblioref">1997</a>)</span> before the gradient boosting connection was made explicit, can be recovered as a special case by choosing exponential loss.</p>
+<p>For binary classification with <span class="math inline">\(y_i \in \{-1, +1\}\)</span>, define</p>
+<div class="display-math-block">
+<p><span class="math display">\[
+\ell(y_i, F(x_i)) = e^{-y_i F(x_i)}.
+\]</span></p>
+</div>
+<p>The negative gradient at the current fit is</p>
+<div class="display-math-block">
+<p><span class="math display">\[
+r_{im}
+=
+-\left.\frac{\partial \ell(y_i, F(x_i))}{\partial F(x_i)}\right|_{F=\hat F_{m-1}}
+= y_i \, e^{-y_i \hat F_{m-1}(x_i)}.
+\]</span></p>
+</div>
+<p>Writing <span class="math inline">\(w_{im} = e^{-y_i \hat F_{m-1}(x_i)}\)</span>, the pseudo-residual is <span class="math inline">\(r_{im} = y_i w_{im}\)</span>. Since <span class="math inline">\(y_i \in \{-1,+1\}\)</span>, fitting a tree to these pseudo-residuals is equivalent to fitting a weighted classifier with weight <span class="math inline">\(w_{im}\)</span> on observation <span class="math inline">\(i\)</span>. Observations that are currently misclassified — those for which <span class="math inline">\(y_i \hat F_{m-1}(x_i) &lt; 0\)</span> — have <span class="math inline">\(w_{im} &gt; 1\)</span>, so the next tree is directed toward the current mistakes. This is exactly the AdaBoost observation-reweighting step.</p>
+<p>The exponential-loss framing also reveals a limitation: <span class="math inline">\(w_{im}\)</span> grows without bound when an observation is persistently and confidently misclassified. A single outlier can eventually dominate the loss and distort subsequent trees. By contrast, the Bernoulli log-loss gradient <span class="math inline">\(p_i - y_i\)</span> is bounded in <span class="math inline">\((-1, 1)\)</span>, so the weight placed on any single observation is capped. This robustness is one reason log-loss is generally preferred over exponential loss in econometric applications, where outcomes can have heavy tails or influential observations.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Question for Reflection">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Question for Reflection
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>AdaBoost and gradient boosting with log-loss both iteratively correct current mistakes. Why might you still prefer log-loss when forecasting binary recession indicators from macroeconomic data, even if both methods reached similar validation accuracy?</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled" title="Suggested Answer">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Suggested Answer
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Macroeconomic time series contain unusual observations — financial crises, pandemic quarters — that are influential precisely because they are rare and extreme. Under exponential loss, a persistently misclassified recession quarter receives an exponentially growing weight, so subsequent trees are pulled toward fitting that single observation rather than improving predictions broadly. Log-loss assigns a bounded gradient to each observation, so no single quarter can disproportionately dominate the boosting path. In a setting where rare events matter but should not dictate the entire model, that boundedness is a meaningful practical advantage.</p>
+</div>
 </div>
 </div>
 </section>
@@ -679,7 +748,7 @@ Question for Reflection
 </div>
 </div>
 <div class="callout callout-style-default callout-tip callout-titled" title="Suggested Answer">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -688,7 +757,7 @@ Suggested Answer
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div id="callout-8" class="callout-8-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>A small learning rate with many trees is better supported when the validation curve is flatter and overfitting appears later along the boosting path. A larger learning rate with fewer trees is better supported when the time-ordered validation curve is genuinely similar but the model reaches that performance with fewer boosting steps and lower computational cost. The comparison should be based on validation over the relevant forecast origins, not on in-sample fit.</p>
 </div>
@@ -817,7 +886,7 @@ F_1(x) = F_0(x) + 0.4\, h_1(x).
 </div>
 </div>
 <div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-11-contents" aria-controls="callout-11" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-13-contents" aria-controls="callout-13" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -826,14 +895,14 @@ Hint for Part 2
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-11" class="callout-11-contents callout-collapse collapse">
+<div id="callout-13" class="callout-13-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>Under squared loss, the best constant predictor is the sample mean.</p>
 </div>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-12-contents" aria-controls="callout-12" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-14-contents" aria-controls="callout-14" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -842,14 +911,14 @@ Hint for Part 3
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-12" class="callout-12-contents callout-collapse collapse">
+<div id="callout-14" class="callout-14-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>For each candidate split, compute the mean residual in the left and right leaf and then the residual SSE.</p>
 </div>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-13-contents" aria-controls="callout-13" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-15-contents" aria-controls="callout-15" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -858,14 +927,14 @@ Hint for Part 5
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-13" class="callout-13-contents callout-collapse collapse">
+<div id="callout-15" class="callout-15-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>A smaller learning rate usually gives a worse fit after one step, but that is not the right comparison. Boosting is a multi-step procedure.</p>
 </div>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-14-contents" aria-controls="callout-14" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-16-contents" aria-controls="callout-16" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -874,7 +943,7 @@ Solution
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-14" class="callout-14-contents callout-collapse collapse">
+<div id="callout-16" class="callout-16-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p><strong>Part 1: Core idea</strong></p>
 <p>Under squared loss, boosting starts from a simple predictor and then repeatedly fits a weak learner to the current residuals. Each new tree corrects part of the remaining error.</p>
@@ -1021,41 +1090,8 @@ p_i = \sigma(F(x_i)) = \frac{1}{1+e^{-F(x_i)}}.
 c = \log\left(\frac{\bar y}{1-\bar y}\right).
 \]</span></li>
 <li>For the sample <span class="math inline">\(y=(1,1,0,1)\)</span>, compute <span class="math inline">\(\bar y\)</span>, the optimal initial constant <span class="math inline">\(F_0\)</span>, the implied initial probability <span class="math inline">\(p_i\)</span>, and the pseudo-residuals.</li>
-<li>Explain why early stopping for monthly recession forecasting should not be chosen using random k-fold validation. What validation design is more appropriate?</li>
 </ol>
-<p><em>Exam level: suitable as-is. Parts 1-3 derive the classification gradients formally, and Part 4 tests the main econometric issue in boosted forecasting workflows.</em></p>
-</div>
-</div>
-<div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-16-contents" aria-controls="callout-16" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Hint for Part 1
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-16" class="callout-16-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>Differentiate through the logistic link: <span class="math inline">\(\sigma'(z)=\sigma(z)(1-\sigma(z))\)</span>.</p>
-</div>
-</div>
-</div>
-<div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-17-contents" aria-controls="callout-17" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Hint for Part 2
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-17" class="callout-17-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>Differentiate the total loss with respect to the constant <span class="math inline">\(c\)</span> and set the derivative equal to zero.</p>
-</div>
+<p><em>Exam level: suitable as-is. Parts 1-3 derive the classification gradients formally.</em></p>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning callout-titled">
@@ -1064,18 +1100,34 @@ Hint for Part 2
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Hint for Part 4
+Hint for Part 1
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
 <div id="callout-18" class="callout-18-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>Ask whether a randomly shuffled fold respects the information set available at a given forecast origin.</p>
+<p>Differentiate through the logistic link: <span class="math inline">\(\sigma'(z)=\sigma(z)(1-\sigma(z))\)</span>.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-19-contents" aria-controls="callout-19" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Hint for Part 2
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-19" class="callout-19-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Differentiate the total loss with respect to the constant <span class="math inline">\(c\)</span> and set the derivative equal to zero.</p>
 </div>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-19-contents" aria-controls="callout-19" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-20-contents" aria-controls="callout-20" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1084,7 +1136,7 @@ Solution
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-19" class="callout-19-contents callout-collapse collapse">
+<div id="callout-20" class="callout-20-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p><strong>Part 1: Derivative of log-loss</strong></p>
 <p>Write <span class="math inline">\(p_i=\sigma(F_i)\)</span> with <span class="math inline">\(F_i=F(x_i)\)</span>. Then</p>
@@ -1176,18 +1228,20 @@ r = (1-0.75,\ 1-0.75,\ 0-0.75,\ 1-0.75)
 (0.25,\ 0.25,\ -0.75,\ 0.25).
 \]</span></p>
 </div>
-<p><strong>Part 4: Early stopping in forecasting</strong></p>
-<p>Random k-fold validation shuffles observations across time. In recession forecasting, this lets the tuning procedure use future observations to help determine the stopping point, which creates optimistic bias and does not match the real-time forecasting problem.</p>
-<p>The correct approach is time-ordered validation, such as rolling or expanding windows. The stopping rule should be chosen using only information that would actually have been available at the forecast origin.</p>
 </div>
 </div>
 </div>
+
 
 
 </section>
 </section>
 
-</main> <!-- /main -->
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-FreundSchapire1997" class="csl-entry" role="listitem">
+Freund, Yoav, and Robert E. Schapire. 1997. <span>“<span class="nocase">A Decision-Theoretic Generalization of On-Line Learning and an Application to Boosting</span>.”</span> <em>Journal of Computer and System Sciences</em> 55 (1): 119–39. <a href="https://doi.org/10.1006/jcss.1997.1504">https://doi.org/10.1006/jcss.1997.1504</a>.
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
