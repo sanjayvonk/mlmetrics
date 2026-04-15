@@ -4,6 +4,14 @@ This open textbook introduces modern machine-learning methods for graduate stude
 
 The book assumes a strong econometrics and statistics background, but no prior exposure to machine learning. Concepts such as cross-validation, neural networks, tree-based methods, boosting, conformal prediction, and foundation models for economic text are introduced from first principles and connected to familiar econometric ideas such as likelihood, loss functions, forecast evaluation, time-series dependence, and model selection.
 
+## Why Does This Book Exist? {.unnumbered}
+
+When teaching econometrics students who wanted to engage seriously with machine learning, I kept running into the same difficulty. Standard ML texts are written for a different audience: they assume little prior statistical training, often work with independent and identically distributed data, and illustrate ideas with image classification. The econometric issues that come up naturally in economic and financial applications — serial dependence, distributional forecasting, real-time information sets, leakage from inappropriate validation — receive limited attention.
+
+At the same time, econometrics textbooks that touch on prediction or regularization rarely connect to the broader ML toolkit, and they seldom discuss how methods such as neural networks or gradient boosting should be adapted when the data have the structure of a financial or macroeconomic time series.
+
+These notes grew out of an attempt to bridge that gap for students with a solid econometrics background. They are not a substitute for the many excellent ML resources that already exist, but an attempt to frame the material in a way that connects to what econometricians already know.
+
 :::{.callout-note appearance="simple" icon=false}
 ## Who This Book Is For
 
@@ -50,9 +58,15 @@ Each chapter combines formal notation, econometric interpretation, and Python ex
 
 The exercises are intended to be suitable for handwritten exam preparation. They emphasize derivations, forecast-evaluation logic, validation pitfalls, and conceptual distinctions that matter when machine-learning methods are applied to economic data.
 
-## Additional Interesting Literature {.unnumbered}
+## How This Book Relates to Other Resources {.unnumbered}
 
-Readers looking for a complementary online resource may find [*Machine Learning for Factor Investing*](https://www.mlfactor.com/) useful. Although its main application domain is asset pricing and empirical finance rather than general econometrics, it contains clear expository material on neural networks, tree-based methods, and related machine-learning tools from a quantitatively oriented perspective.
+Several good resources cover adjacent territory, and it may help to say briefly how this book fits in.
+
+[*Machine Learning for Factor Investing*](https://www.mlfactor.com/) by Coqueret and Guida is a practitioner-oriented guide to ML in asset pricing, with a focus on return prediction and portfolio formation. Readers looking for a complement to this book, particularly on financial applications, will find it useful. This book differs mainly in emphasis: it assumes a graduate econometrics background and spends more time on issues like dependence, forecast evaluation, and distributional uncertainty. It also covers some topics — conformal prediction, foundation models for economic text, distributional neural networks — that fall outside the asset pricing focus of that book.
+
+Standard ML textbooks such as *An Introduction to Statistical Learning* or *Hands-On Machine Learning* are excellent introductions for readers without a prior statistics or econometrics background. This book is not a replacement for them; it is intended for readers who have already covered that ground and want to connect ML methods to the econometric settings they work in.
+
+This book also does not cover time-series econometrics. It does not replace a dedicated treatment of ARIMA, GARCH, or state-space methods. Those tools are assumed as background knowledge throughout.
 
 ## Author and License {.unnumbered}
 
