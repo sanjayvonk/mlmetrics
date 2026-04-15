@@ -7,8 +7,6 @@
 
 .quarto-container .content .display-math-block p {
   text-align: center;
-  text-align-last: center;
-  text-justify: auto;
   hyphens: none;
 }
 
