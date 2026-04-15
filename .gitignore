@@ -11,7 +11,6 @@ _book/
 
 # Quarto render cache/intermediates
 *_cache/
-*_files/
 
 # Jupyter / Quarto intermediates
 .jupyter_cache/
