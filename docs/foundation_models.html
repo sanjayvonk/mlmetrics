@@ -410,6 +410,19 @@ window.Quarto = {
 
 <section id="sec-foundation-models" class="level1" data-number="16">
 <h1 data-number="16"><span class="header-section-number">16</span> Foundation Models for Economic Text and Expectations</h1>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Experimental Chapter
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This chapter is under active development. Content, notation, and exercises may change substantially between revisions.</p>
+</div>
+</div>
 <section id="overview" class="level2" data-number="16.1">
 <h2 data-number="16.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">16.1</span> Overview</h2>
 <p>A large and growing share of economic information arrives as text. Central-bank statements, monetary-policy minutes, press conferences, earnings disclosures, conference-call transcripts, analyst reports, and regulatory filings all carry signals about policy stance, risk, and expectations that are not fully captured by any scalar time series. Foundation models — large pre-trained language models such as the GPT and LLaMA families — can process this material and return numerical objects: conditional token probabilities, contextual embeddings, classification scores, or generated responses. A growing econometric literature studies exactly how these objects can be used in policy analysis, forecasting, and measurement without importing the methodological laxity of general-purpose machine-learning practice <span class="citation" data-cites="HaghighiEtAl2025">(<a href="#ref-HaghighiEtAl2025" role="doc-biblioref">Haghighi et al. 2025</a>)</span>.</p>
@@ -543,7 +556,7 @@ Question for Reflection
 </div>
 </div>
 <div class="callout callout-style-default callout-tip callout-titled" title="Suggested Answer">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -552,7 +565,7 @@ Suggested Answer
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>Perplexity is only a meaningful predictive score under some form of exchangeability between training and test tokens. A structural break in the inflation process changes both vocabulary frequencies and conditional patterns, so the cross-entropy <span class="math inline">\(H(p^\star, p_\theta)\)</span> evaluated on post-break text is computed against a different <span class="math inline">\(p^\star\)</span> than the one the model was trained under. Perplexity will typically rise, but the more important point is that comparisons across regimes are no longer tests of the same learning problem. This is the same caution that applies to any out-of-sample score under non-stationarity.</p>
 </div>
@@ -791,7 +804,7 @@ Question for Reflection
 </div>
 </div>
 <div class="callout callout-style-default callout-tip callout-titled" title="Suggested Answer">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -800,7 +813,7 @@ Suggested Answer
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>The measurement error <span class="math inline">\(u_t\)</span> has a discontinuous distribution at the version-switch date: its variance, and potentially its mean, differ across the two subsamples. If the break is ignored, <span class="math inline">\(\hat\delta\)</span> is a weighted average of two regimes with different reliability ratios, and the attenuation is ambient and unknown. A minimal fix is to re-label the entire sample with a single frozen model version (ideally the earlier one, and the later one, separately) and report both. A more careful fix would include a regime dummy and an interaction term, and report the estimated reliability ratio in each regime.</p>
 </div>
@@ -1022,7 +1035,7 @@ Question for Reflection
 </div>
 </div>
 <div class="callout callout-style-default callout-tip callout-titled" title="Suggested Answer">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-9-contents" aria-controls="callout-9" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1031,7 +1044,7 @@ Suggested Answer
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-8" class="callout-8-contents callout-collapse collapse">
+<div id="callout-9" class="callout-9-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>Statistical explanation: <span class="math inline">\(z_t\)</span> is collinear with <span class="math inline">\(x_t\)</span> in-sample but adds no conditional information once <span class="math inline">\(x_t\)</span> is known at the relevant forecast horizon. This is diagnosed by comparing <span class="math inline">\(R^2\)</span> of a regression of <span class="math inline">\(z_t\)</span> on <span class="math inline">\(x_t\)</span> in-sample to the same object in rolling windows; high <span class="math inline">\(R^2\)</span> implies the in-sample improvement was due to over-fitting additional noise. Data-pipeline explanation: the in-sample construction of <span class="math inline">\(z_t\)</span> used information not available in real time (revised transcripts, retriever trained on the full corpus), so the in-sample gain is leakage that disappears once admissibility is enforced. The two can be distinguished by re-running the in-sample regression with <span class="math inline">\(z_t\)</span> constructed under strict admissibility; if the <span class="math inline">\(R^2\)</span> gain collapses, the problem is pipeline-contamination.</p>
 </div>
@@ -1195,7 +1208,7 @@ Exercise 16.1: Sequence probabilities, cross-entropy, and perplexity
 </div>
 </div>
 <div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-13-contents" aria-controls="callout-13" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-14-contents" aria-controls="callout-14" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1204,14 +1217,14 @@ Hint for Part 3
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-13" class="callout-13-contents callout-collapse collapse">
+<div id="callout-14" class="callout-14-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>Compute <span class="math inline">\(-\log(0.0001) \approx 9.21\)</span> and compare to the average of the other seven terms. Then ask what happens to <span class="math inline">\(\text{PPL}\)</span> if you replace the last token’s probability with <span class="math inline">\(10^{-2}\)</span> instead; the change in <span class="math inline">\(\text{PPL}\)</span> is the diagnostic quantity.</p>
 </div>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-14-contents" aria-controls="callout-14" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-15-contents" aria-controls="callout-15" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1220,7 +1233,7 @@ Solution
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-14" class="callout-14-contents callout-collapse collapse">
+<div id="callout-15" class="callout-15-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p><strong>Part 1.</strong> The log-probabilities are </p>
 <div class="display-math-block">
@@ -1295,7 +1308,7 @@ y_{t+1} = \alpha + \delta\, z_t + \eta_{t+1}
 </div>
 </div>
 <div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-16-contents" aria-controls="callout-16" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-17-contents" aria-controls="callout-17" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1304,14 +1317,14 @@ Hint for Part 1
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-16" class="callout-16-contents callout-collapse collapse">
+<div id="callout-17" class="callout-17-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>Start from <span class="math inline">\(\hat\delta_{\text{OLS}} = \mathrm{Cov}(y_{t+1}, z_t) / \mathrm{Var}(z_t)\)</span> and compute each object using the model equations and the independence assumptions.</p>
 </div>
 </div>
 </div>
 <div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-17-contents" aria-controls="callout-17" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-18-contents" aria-controls="callout-18" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1320,14 +1333,14 @@ Hint for Part 3
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-17" class="callout-17-contents callout-collapse collapse">
+<div id="callout-18" class="callout-18-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>Predictive content is about the joint distribution of <span class="math inline">\((y_{t+1}, z_t)\)</span>: it is enough that <span class="math inline">\(\mathbb{E}[y_{t+1} \mid z_t] \neq \mathbb{E}[y_{t+1}]\)</span>. Inference about <span class="math inline">\(\gamma\)</span> is about the coefficient on <span class="math inline">\(s_t\)</span>, a different object. A non-zero <span class="math inline">\(\hat\delta\)</span> is consistent with the first and uninformative about the second.</p>
 </div>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-18-contents" aria-controls="callout-18" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-19-contents" aria-controls="callout-19" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1336,7 +1349,7 @@ Solution
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-18" class="callout-18-contents callout-collapse collapse">
+<div id="callout-19" class="callout-19-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p><strong>Part 1.</strong> Compute the covariance: </p>
 <div class="display-math-block">
@@ -1422,7 +1435,7 @@ Exercise 16.3: Real-time information sets and the retriever
 </div>
 </div>
 <div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-20-contents" aria-controls="callout-20" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-21-contents" aria-controls="callout-21" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1431,14 +1444,14 @@ Hint for Part 2
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-20" class="callout-20-contents callout-collapse collapse">
+<div id="callout-21" class="callout-21-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>Think of the retriever as a function whose behavior depends on its parameters <span class="math inline">\(\psi\)</span>. The admissibility condition must apply to the function, not only to its outputs. If <span class="math inline">\(\psi\)</span> depends on post-<span class="math inline">\(t\)</span> information, two different forecast origins using the same <span class="math inline">\(\psi\)</span> are both running a retriever that was not available in real time.</p>
 </div>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-21-contents" aria-controls="callout-21" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-22-contents" aria-controls="callout-22" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -1447,7 +1460,7 @@ Solution
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-21" class="callout-21-contents callout-collapse collapse">
+<div id="callout-22" class="callout-22-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p><strong>Part 1.</strong></p>
 <ul>

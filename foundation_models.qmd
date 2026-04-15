@@ -8,6 +8,11 @@ number-offset: [15, 0]
 
 # Foundation Models for Economic Text and Expectations {#sec-foundation-models}
 
+:::{.callout-warning}
+## Experimental Chapter
+This chapter is under active development. Content, notation, and exercises may change substantially between revisions.
+:::
+
 ## Overview
 
 A large and growing share of economic information arrives as text. Central-bank statements, monetary-policy minutes, press conferences, earnings disclosures, conference-call transcripts, analyst reports, and regulatory filings all carry signals about policy stance, risk, and expectations that are not fully captured by any scalar time series. Foundation models --- large pre-trained language models such as the GPT and LLaMA families --- can process this material and return numerical objects: conditional token probabilities, contextual embeddings, classification scores, or generated responses. A growing econometric literature studies exactly how these objects can be used in policy analysis, forecasting, and measurement without importing the methodological laxity of general-purpose machine-learning practice [@HaghighiEtAl2025].
