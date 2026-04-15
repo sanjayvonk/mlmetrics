@@ -6,11 +6,11 @@ The book assumes a strong background in econometrics and statistics, but no prio
 
 ## Why Does This Book Exist? {.unnumbered}
 
-When teaching econometrics students who wanted to engage seriously with machine learning, I kept running into the same problem. Standard ML texts are usually written for a different audience: they often assume little prior statistical training, work mostly with independent and identically distributed data, and motivate ideas with image or text classification. The econometric issues that arise naturally in economic and financial applications - serial dependence, distributional forecasting, real-time information sets, and leakage from invalid validation designs - usually receive much less attention.
+This book grew out of two related motivations. The first was my own curiosity about how modern machine-learning methods should be adapted to the econometric problems that arise in research on forecasting, macro-finance, and predictive distributions. The second was teaching the MSc course Machine Learning at the Econometrics Institute at Erasmus University Rotterdam. In that course, I kept running into the same problem: standard ML texts are usually written for a different audience. They often assume little prior statistical training, work mostly with independent and identically distributed data, and motivate ideas with image or text classification. The econometric issues that arise naturally in economic and financial applications - serial dependence, distributional forecasting, real-time information sets, and leakage from invalid validation designs - usually receive much less attention.
 
 At the same time, econometrics texts that discuss prediction or regularization rarely connect those topics to the broader ML toolkit, and they seldom explain how methods such as neural networks or gradient boosting should be adapted when the data have the structure of a macroeconomic or financial time series.
 
-These notes grew out of an attempt to bridge that gap for students with a solid econometrics background. They are not a substitute for the many strong ML resources that already exist. The goal is narrower and more practical: to frame modern machine learning in a language that econometricians can use immediately.
+The aim of these notes is to bridge that gap for students with a solid econometrics background. They are not a substitute for the many strong ML resources that already exist. Instead, they frame modern machine learning in a language that econometricians can use immediately.
 
 :::{.callout-note appearance="simple" icon=false}
 ## Who This Book Is For

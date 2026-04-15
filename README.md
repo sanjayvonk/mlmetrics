@@ -4,6 +4,8 @@ MLmetrics is an open textbook on machine learning for graduate students in econo
 
 The book is written for readers with a strong background in probability, statistics, and econometrics who want a treatment of machine learning that takes econometric structure seriously. Instead of presenting ML in clean i.i.d. toy settings, the book focuses on the problems econometricians actually face: time dependence, real-time information sets, leakage from invalid validation schemes, heteroskedasticity, tail risk, and predictive distributions.
 
+The project grew out of my own curiosity about how modern machine-learning methods connect to econometric problems in forecasting and macro-finance, and it was designed for the MSc course Machine Learning at the Econometrics Institute at Erasmus University Rotterdam.
+
 ## Scope
 
 The book covers:
