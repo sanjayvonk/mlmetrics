@@ -163,15 +163,15 @@ The entropy increases with variance $\sigma^2$, which aligns with our intuition.
 
 **Maximum Entropy Property of Gaussians**
 
-**Key Result**: Among all distributions with given covariance on $\mathbb{R}$, the Gaussian has the largest entropy.
+**Key Result**: Among all distributions with given variance on $\mathbb{R}$, the Gaussian has the largest entropy.
 
 **Interpretation**: There is no uniform distribution on $\mathbb{R}$, but the Gaussian is the "most uniform" distribution under the variance constraint.
 
 **Why?** 
 
 - Entropy measures uncertainty - a distribution with higher entropy is "more evenly spread out" or "less predictable"
-- Covariance fixes the spread (second moments)
-- Under fixed covariance, the only freedom is how probability mass is shaped
+- Variance fixes the spread (second moments)
+- Under fixed variance, the only freedom is how probability mass is shaped
 - For given variance, a Gaussian is the **smoothest possible way to distribute probability mass across $\mathbb{R}$**
 - Any other shape (more peaked or heavy-tailed) concentrates mass somewhere, reducing entropy
 
@@ -221,7 +221,7 @@ Cross-entropy and KL divergence would also notice the difference once a referenc
 
 ## Relative Entropy (KL Divergence)
 
-We combine entropy and cross-entropy to define a divergence measure that is non-negative, zero if and only if distributions are equal, and invariant to reparameterization.
+We combine entropy and cross-entropy to define a divergence measure that is non-negative, zero if and only if the distributions are equal almost everywhere, and invariant to reparameterization.
 
 For distributions $p$ and $q$ on the same space $\mathcal{X}$:
 
@@ -245,7 +245,7 @@ Where:
 :::{.callout-note}
 ## Properties of KL Divergence
 
-1. **Non-negativity**: $D_{\text{KL}}(p\parallel q) \geq 0$, with equality if and only if $p(x) = q(x)$ for all $x$ (for a proof, see exercises below)
+1. **Non-negativity**: $D_{\text{KL}}(p\parallel q) \geq 0$, with equality if and only if $p(x) = q(x)$ for all $x$ such that $p(x) > 0$ (for a proof, see exercises below)
 2. **Asymmetry**: $D_{\text{KL}}(p\parallel q) \neq D_{\text{KL}}(q\parallel p)$ in general  
 3. **Reparameterization invariance**: If $p$ and $q$ are reparameterized, the KL divergence remains unchanged (for a proof, see exercises below)
 :::
@@ -707,7 +707,7 @@ This proves that $D_{\text{KL}}(p \parallel q) \ge 0$.
 
 For the equality condition, Jensen's inequality holds with equality if and only if the random variable is a constant. In our case, this means $\frac{q(x)}{p(x)} = c$ for some constant $c$.
 $$ \sum_x q(x) = \sum_x c \cdot p(x) \implies 1 = c \sum_x p(x) \implies c=1 $$
-Therefore, equality holds if and only if $\frac{q(x)}{p(x)} = 1$, which means $p(x) = q(x)$ for all $x$.
+Therefore, equality holds if and only if $\frac{q(x)}{p(x)} = 1$, which means $p(x) = q(x)$ for all $x$ such that $p(x) > 0$.
 
 **Part 3: Why This Matters for Model Comparison**
 
@@ -715,7 +715,7 @@ This matters because KL divergence measures the expected log-score gap between t
 :::
 
 :::{.callout-note}
-## Exercise 1.4: Invariance of KL divergence
+## Exercise 1.4: Invariance of KL Divergence
 Show that the Kullback-Leibler (KL) divergence is invariant to a change of variables (reparameterization). 
 
 Prove this property. Specifically, let $X$ be a continuous random variable with two possible probability densities, $p_X(x)$ and $q_X(x)$. Let $y = g(x)$ be an invertible transformation with corresponding densities $p_Y(y)$ and $q_Y(y)$. Show that the KL divergence is unchanged:
@@ -900,13 +900,13 @@ Let $X$ and $Y$ be discrete random variables with joint distribution $p(x,y)$.
    $$
 2. Define the mutual information by
    $$
-   I(X;Y)=\mathbb{H}(X)+\mathbb{H}(Y)-\mathbb{H}(X,Y).
+   \mathbb{I}(X;Y)=\mathbb{H}(X)+\mathbb{H}(Y)-\mathbb{H}(X,Y).
    $$
    and prove that
    $$
-   I(X;Y)=D_{\mathrm{KL}}\!\big(p(x,y)\,\|\,p(x)p(y)\big).
+   \mathbb{I}(X;Y)=D_{\mathrm{KL}}\!\big(p(x,y)\,\|\,p(x)p(y)\big).
    $$
-   Use this to show that independence implies $I(X;Y)=0$.
+   Use this to show that independence implies $\mathbb{I}(X;Y)=0$.
 3. Explain why a positive value of mutual information is useful in applied work even when the linear correlation between $X$ and $Y$ is zero.
 
 *Exam level. The exercise connects entropy additivity to the interpretation of mutual information as a general dependence measure.*
@@ -957,11 +957,11 @@ D_{\mathrm{KL}}\!\big(p(x,y)\,\|\,p(x)p(y)\big)
 - \sum_{x,y} p(x,y)\log p(y) \\
 &=
 -\mathbb{H}(X,Y)+\mathbb{H}(X)+\mathbb{H}(Y) \\
-&= I(X;Y).
+&= \mathbb{I}(X;Y).
 \end{align*}
 If $X$ and $Y$ are independent, then $p(x,y)=p(x)p(y)$, so the KL divergence is zero and therefore
 $$
-I(X;Y)=0.
+\mathbb{I}(X;Y)=0.
 $$
 
 **Part 3: Why Mutual Information Adds Value**
