@@ -475,7 +475,7 @@ w_i(x)
 \]</span></p>
 </div>
 <p>The weight <span class="math inline">\(w_i(x)\)</span> is large when observation <span class="math inline">\(i\)</span> often lands in the same terminal leaf as the forecast point. This is the forest analogue of a kernel estimator: the forest defines the neighborhood through its tree partitions rather than through a fixed distance metric.</p>
-<p>This weighting view is also the bridge to more advanced forests. Quantile and distributional forests keep more than the leaf mean and use the same neighborhood weights to estimate a conditional distribution. Local-linear forests go in a different direction: they retain the forest neighborhood but fit a local linear model rather than a constant inside the neighborhood. <strong>?@sec-adv-qrf</strong> develops the distributional version.</p>
+<p>This weighting view is also the bridge to more advanced forests. Quantile and distributional forests keep more than the leaf mean and use the same neighborhood weights to estimate a conditional distribution. Local-linear forests go in a different direction: they retain the forest neighborhood but fit a local linear model rather than a constant inside the neighborhood. The <a href="./adv_tree_based_methods.html#sec-adv-qrf">distributional and quantile random-forest section</a> develops the distributional version.</p>
 <div id="cell-fig-tree-vs-forest" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div id="fig-tree-vs-forest" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -602,6 +602,9 @@ Figure&nbsp;11.2: OOB and test MSE typically stabilize as the number of trees gr
 <li>Smaller leaves reduce bias but increase the variance of individual trees.</li>
 <li>Larger leaves smooth the prediction surface and can improve performance when the signal is weak or noisy.</li>
 </ul>
+<p><strong>Monotonicity Constraints in Some Implementations</strong></p>
+<p>Monotonicity constraints are not part of the classical random-forest theory developed in this chapter, but some modern implementations allow them. The idea is the same as in constrained boosting: if economic reasoning implies that a predictor should move the fitted outcome only upward or only downward, the ensemble can be restricted to respect that sign pattern. This can make a forest more credible when the unrestricted fit shows local reversals that are hard to defend economically.</p>
+<p>The same warning applies as elsewhere: a monotonicity restriction is a predictive shape constraint, not a structural identification device. If the sign restriction is wrong or only locally valid, the forest can become systematically misspecified.</p>
 <p><strong>Practical Bias-Variance Summary</strong></p>
 <p>The forest design has two levers:</p>
 <ol type="1">

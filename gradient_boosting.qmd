@@ -232,7 +232,7 @@ Thus, classification boosting still looks residual-like, but the residual now li
 :::{.callout-important}
 ## Connection to Cross-Entropy
 
-For classification, boosting with Bernoulli log-loss is minimizing cross-entropy, i.e. the negative log-likelihood of a Bernoulli model. This links boosting directly to @sec-mle-kl-divergence: fitting the boosted classifier means reducing the discrepancy between observed class outcomes and predicted event probabilities.
+For classification, boosting with Bernoulli log-loss is minimizing cross-entropy, i.e. the negative log-likelihood of a Bernoulli model. This links boosting directly to the [MLE-as-KL discussion](information_theory.qmd#sec-mle-kl-divergence): fitting the boosted classifier means reducing the discrepancy between observed class outcomes and predicted event probabilities.
 :::
 
 **AdaBoost as Exponential-Loss Boosting**
@@ -316,9 +316,33 @@ Subsampling can:
 
 At the cost of introducing additional randomness into the stagewise updates.
 
+**Monotonicity Constraints**
+
+Sometimes the econometrician has credible prior knowledge about the sign of a predictive relationship even if the rest of the conditional mean is complicated. For example, one might regard it as implausible that a higher debt-service burden should *lower* predicted default risk, or that a tighter financial-conditions index should *lower* predicted recession risk, all else equal. A monotonicity constraint imposes exactly such a shape restriction on the fitted function.
+
+In a tree-ensemble model, this means restricting the fitted prediction to move only in one direction as a chosen predictor increases, holding the other predictors fixed. The idea is not unique to boosting, but it is especially prominent in modern boosted-tree implementations because it fits naturally into the broader regularization toolkit. This does not make the model structural or causal. It is better understood as a regularization device that uses economic theory to rule out locally implausible wiggles in the prediction surface.
+
+When the sign restriction is well founded, monotonicity constraints can improve credibility, stabilize partial-effect summaries, and prevent the ensemble from fitting noise in directions that contradict economic reasoning. But they are not free. If the true conditional relationship is non-monotone, changes sign across regimes, or is only monotone after conditioning on variables the model does not include, the constraint can introduce systematic misspecification.
+
+**How the constraint is enforced.** Inside each tree, a split on a constrained feature is accepted only if the resulting child fitted values respect the sign pattern: for an increasing constraint, the left child's mean must not exceed the right child's. To ensure the constraint holds globally and not just locally at each split, modern implementations propagate bounds through the tree: when a node is split on feature $j$, the fitted values in its children are restricted to an interval computed from the ancestor path, so that even splits on *other* features cannot eventually produce leaves that violate the monotone ordering across the full predictor space. Splits that would violate the constraint are never taken. This is a hard restriction on the function class, not a penalty added to the loss.
+
+**In scikit-learn.** The histogram-based gradient-boosting estimator `HistGradientBoostingRegressor` accepts a `monotonic_cst` argument with one integer per feature: `+1` for increasing, `-1` for decreasing, and `0` for no constraint. For three predictors where the first is required to enter monotonically increasing:
+
+```python
+from sklearn.ensemble import HistGradientBoostingRegressor
+
+model = HistGradientBoostingRegressor(
+    monotonic_cst=[1, 0, 0],
+    max_iter=500,
+    learning_rate=0.05,
+)
+```
+
+See the scikit-learn example [Monotonic Constraints](https://scikit-learn.org/stable/auto_examples/ensemble/plot_monotonic_constraints.html) for a visual comparison of constrained and unconstrained fits and a full working API example.
+
 :::{.callout-note title="Implementation Note: XGBoost"}
 
-XGBoost is an optimized implementation family for gradient-boosted trees. Relative to the basic algorithm in this chapter, it adds engineering and regularization features such as efficient split search, L1/L2-style penalties, sparse or missing-value handling, and scalable training. The econometric interpretation remains the same: it is still a tuned predictive tree ensemble, so validation design and the information set are central.
+XGBoost is an optimized implementation family for gradient-boosted trees. Relative to the basic algorithm in this chapter, it adds engineering and regularization features such as efficient split search, L1/L2-style penalties, sparse or missing-value handling, monotone constraints, and scalable training. The econometric interpretation remains the same: it is still a tuned predictive tree ensemble, so validation design and the information set are central.
 :::
 
 ```{python}

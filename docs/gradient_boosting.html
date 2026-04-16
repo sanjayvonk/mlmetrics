@@ -623,7 +623,7 @@ Connection to Cross-Entropy
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>For classification, boosting with Bernoulli log-loss is minimizing cross-entropy, i.e.&nbsp;the negative log-likelihood of a Bernoulli model. This links boosting directly to <strong>?@sec-mle-kl-divergence</strong>: fitting the boosted classifier means reducing the discrepancy between observed class outcomes and predicted event probabilities.</p>
+<p>For classification, boosting with Bernoulli log-loss is minimizing cross-entropy, i.e.&nbsp;the negative log-likelihood of a Bernoulli model. This links boosting directly to the <a href="./information_theory.html#sec-mle-kl-divergence">MLE-as-KL discussion</a>: fitting the boosted classifier means reducing the discrepancy between observed class outcomes and predicted event probabilities.</p>
 </div>
 </div>
 <p><strong>AdaBoost as Exponential-Loss Boosting</strong></p>
@@ -715,6 +715,10 @@ Suggested Answer
 <li>speed computation</li>
 </ul>
 <p>At the cost of introducing additional randomness into the stagewise updates.</p>
+<p><strong>Monotonicity Constraints</strong></p>
+<p>Sometimes the econometrician has credible prior knowledge about the sign of a predictive relationship even if the rest of the conditional mean is complicated. For example, one might regard it as implausible that a higher debt-service burden should <em>lower</em> predicted default risk, or that a tighter financial-conditions index should <em>lower</em> predicted recession risk, all else equal. A monotonicity constraint imposes exactly such a shape restriction on the fitted function.</p>
+<p>In a tree-ensemble model, this means restricting the fitted prediction to move only in one direction as a chosen predictor increases, holding the other predictors fixed. The idea is not unique to boosting, but it is especially prominent in modern boosted-tree implementations because it fits naturally into the broader regularization toolkit. This does not make the model structural or causal. It is better understood as a regularization device that uses economic theory to rule out locally implausible wiggles in the prediction surface.</p>
+<p>When the sign restriction is well founded, monotonicity constraints can improve credibility, stabilize partial-effect summaries, and prevent the ensemble from fitting noise in directions that contradict economic reasoning. But they are not free. If the true conditional relationship is non-monotone, changes sign across regimes, or is only monotone after conditioning on variables the model does not include, the constraint can introduce systematic misspecification.</p>
 <div class="callout callout-style-default callout-note callout-titled" title="Implementation Note: XGBoost">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -725,7 +729,7 @@ Implementation Note: XGBoost
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>XGBoost is an optimized implementation family for gradient-boosted trees. Relative to the basic algorithm in this chapter, it adds engineering and regularization features such as efficient split search, L1/L2-style penalties, sparse or missing-value handling, and scalable training. The econometric interpretation remains the same: it is still a tuned predictive tree ensemble, so validation design and the information set are central.</p>
+<p>XGBoost is an optimized implementation family for gradient-boosted trees. Relative to the basic algorithm in this chapter, it adds engineering and regularization features such as efficient split search, L1/L2-style penalties, sparse or missing-value handling, monotone constraints, and scalable training. The econometric interpretation remains the same: it is still a tuned predictive tree ensemble, so validation design and the information set are central.</p>
 </div>
 </div>
 <div id="cell-fig-boosting-learning-rate" class="cell" data-execution_count="3">
