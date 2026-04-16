@@ -359,7 +359,8 @@ div.csl-indent {
   <li><a href="#sec-datasets" id="toc-sec-datasets" class="nav-link active" data-scroll-target="#sec-datasets"><span class="header-section-number">17</span> Data Sets Used in This Book</a>
   <ul class="collapse">
   <li><a href="#fred-qd" id="toc-fred-qd" class="nav-link" data-scroll-target="#fred-qd"><span class="header-section-number">17.1</span> FRED-QD</a></li>
-  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">17.2</span> References</a></li>
+  <li><a href="#spy-taq-5-minute-realized-measures" id="toc-spy-taq-5-minute-realized-measures" class="nav-link" data-scroll-target="#spy-taq-5-minute-realized-measures"><span class="header-section-number">17.2</span> SPY TAQ 5-Minute Realized Measures</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">17.3</span> References</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -522,8 +523,145 @@ Figure&nbsp;17.1: Selected FRED-QD series used in the book, standardized to mean
 </div>
 <p>The authors’ transformation codes in the second metadata row are not applied here. Individual chapters construct the transformations they need directly from the raw levels so that the forecast origin and information set are explicit.</p>
 </section>
-<section id="references" class="level2" data-number="17.2">
-<h2 data-number="17.2" class="anchored" data-anchor-id="references"><span class="header-section-number">17.2</span> References</h2>
+<section id="spy-taq-5-minute-realized-measures" class="level2" data-number="17.2">
+<h2 data-number="17.2" class="anchored" data-anchor-id="spy-taq-5-minute-realized-measures"><span class="header-section-number">17.2</span> SPY TAQ 5-Minute Realized Measures</h2>
+<p>The repository also contains scripts for constructing local realized-volatility measures from WRDS TAQ millisecond trade data for the SPDR S&amp;P 500 ETF (<code>SPY</code>). The raw TAQ data and derived Parquet file are not shipped with the public book because TAQ access is licensed through WRDS. The local output path is <a href="./Users/onnokleen/Research-ML/Book_ML_Econometrics/data/taq_spy/SPY_5min_daily_rv.parquet">data/taq_spy/SPY_5min_daily_rv.parquet</a>, and the whole <code>data/taq_spy/</code> directory is excluded from git.</p>
+<ul>
+<li><strong>Unit of observation</strong>: trading day</li>
+<li><strong>Underlying data</strong>: WRDS TAQ millisecond trades, queried from <code>taqmsec.ctm_YYYYMMDD</code></li>
+<li><strong>Instrument</strong>: <code>SPY</code></li>
+<li><strong>Frequency used for realized measures</strong>: 5-minute intraday prices</li>
+<li><strong>Current local coverage</strong>: 158 trading days, from 2015-01-02 through 2015-08-18</li>
+<li><strong>Construction scripts</strong>: <a href="./Users/onnokleen/Research-ML/Book_ML_Econometrics/scripts/download_spy_taq_wrds.R">scripts/download_spy_taq_wrds.R</a> downloads and cleans TAQ trades; <a href="./Users/onnokleen/Research-ML/Book_ML_Econometrics/scripts/compile_spy_5min_rv_parquet.R">scripts/compile_spy_5min_rv_parquet.R</a> compiles daily realized measures from the local 5-minute bar files.</li>
+</ul>
+<p>The local Parquet file contains the variables below.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 43%">
+<col style="width: 56%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>date</code></td>
+<td>Trading day</td>
+</tr>
+<tr class="even">
+<td><code>symbol</code></td>
+<td>TAQ root symbol, equal to <code>SPY</code></td>
+</tr>
+<tr class="odd">
+<td><code>n_bars</code></td>
+<td>Number of 5-minute price observations used that day</td>
+</tr>
+<tr class="even">
+<td><code>open_taq</code></td>
+<td>First cleaned 5-minute TAQ price</td>
+</tr>
+<tr class="odd">
+<td><code>close_taq</code></td>
+<td>Last cleaned 5-minute TAQ price</td>
+</tr>
+<tr class="even">
+<td><code>rv_5min</code></td>
+<td>Realized variance, computed as the sum of squared 5-minute log returns in percent</td>
+</tr>
+<tr class="odd">
+<td><code>bv_5min</code></td>
+<td>Bipower variation, computed from adjacent absolute 5-minute returns</td>
+</tr>
+<tr class="even">
+<td><code>rq_5min</code></td>
+<td>Realized quarticity proxy based on fourth powers of 5-minute returns</td>
+</tr>
+<tr class="odd">
+<td><code>intraday_return</code></td>
+<td>Open-to-close log return in percent</td>
+</tr>
+</tbody>
+</table>
+<p>The current local file has the following aggregate summary statistics.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Mean</th>
+<th>Std. dev.</th>
+<th>Min</th>
+<th>Median</th>
+<th>Max</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>n_bars</code></td>
+<td>79.000</td>
+<td>0.000</td>
+<td>79.000</td>
+<td>79.000</td>
+<td>79.000</td>
+</tr>
+<tr class="even">
+<td><code>open_taq</code></td>
+<td>208.566</td>
+<td>3.136</td>
+<td>198.780</td>
+<td>209.415</td>
+<td>213.260</td>
+</tr>
+<tr class="odd">
+<td><code>close_taq</code></td>
+<td>208.549</td>
+<td>3.220</td>
+<td>199.010</td>
+<td>209.550</td>
+<td>213.470</td>
+</tr>
+<tr class="even">
+<td><code>rv_5min</code></td>
+<td>0.335</td>
+<td>0.267</td>
+<td>0.043</td>
+<td>0.242</td>
+<td>1.470</td>
+</tr>
+<tr class="odd">
+<td><code>bv_5min</code></td>
+<td>0.306</td>
+<td>0.250</td>
+<td>0.037</td>
+<td>0.223</td>
+<td>1.203</td>
+</tr>
+<tr class="even">
+<td><code>rq_5min</code></td>
+<td>0.317</td>
+<td>0.883</td>
+<td>0.003</td>
+<td>0.092</td>
+<td>8.935</td>
+</tr>
+<tr class="odd">
+<td><code>intraday_return</code></td>
+<td>-0.009</td>
+<td>0.593</td>
+<td>-2.033</td>
+<td>0.000</td>
+<td>1.450</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(arrow)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>spy_rv <span class="ot">&lt;-</span> <span class="fu">read_parquet</span>(<span class="st">"data/taq_spy/SPY_5min_daily_rv.parquet"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="references" class="level2" data-number="17.3">
+<h2 data-number="17.3" class="anchored" data-anchor-id="references"><span class="header-section-number">17.3</span> References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
 <div id="ref-McCrackenNg2020FREDQD" class="csl-entry" role="listitem">
 McCracken, Michael W., and Serena Ng. 2020. <span>“FRED-QD: A Quarterly Database for Macroeconomic Research.”</span> Working Paper 26872. National Bureau of Economic Research.

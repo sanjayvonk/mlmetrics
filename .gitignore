@@ -4,6 +4,7 @@
 # R
 .Rhistory
 .Rproj.user/
+.Renviron
 
 # Quarto build outputs
 _book/
@@ -30,6 +31,9 @@ test.tex
 _old_references.bib
 _quarto_backup.yml
 _quarto_clean.yml
+
+# Large WRDS/TAQ downloads
+/data/taq_spy/
 
 /.quarto/
 
